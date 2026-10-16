@@ -1,12 +1,10 @@
 import { ZodError } from "zod";
-import {
-  createEvent,
-  listAggregateEvents,
-} from "../services/event.service.js";
+import { executeAppendEventCommand } from "../commands/append-event.command.js";
+import { executeGetAggregateEventsQuery } from "../queries/get-aggregate-events.query.js";
 
 export const appendEventController = async (req, res, next) => {
   try {
-    const event = await createEvent(req.body);
+    const event = await executeAppendEventCommand(req.body);
 
     return res.status(201).json({
       success: true,
@@ -37,7 +35,9 @@ export const appendEventController = async (req, res, next) => {
 
 export const getAggregateEventsController = async (req, res, next) => {
   try {
-    const events = await listAggregateEvents(req.params.aggregateId);
+    const events = await executeGetAggregateEventsQuery(
+      req.params.aggregateId
+    );
 
     return res.status(200).json({
       success: true,

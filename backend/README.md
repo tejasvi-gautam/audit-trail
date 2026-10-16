@@ -94,3 +94,50 @@ backend/
 
 └── README.md
 
+## Current CQRS Implementation
+
+The backend follows a Command Query Responsibility Segregation structure.
+
+### Commands
+
+Commands handle write operations:
+
+```text
+backend/src/commands/
+└── append-event.command.js
+```
+
+### Queries
+
+Queries handle read operations:
+
+```text
+backend/src/queries/
+└── get-aggregate-events.query.js
+```
+
+The aggregate events query validates the aggregate ID and retrieves events in ascending version order.
+
+### CQRS API Flow
+
+```text
+POST /api/events
+      ↓
+Append Event Command
+      ↓
+Event Repository
+      ↓
+MongoDB events collection
+```
+
+```text
+GET /api/events/:aggregateId
+      ↓
+Get Aggregate Events Query
+      ↓
+Event Repository
+      ↓
+MongoDB events collection
+```
+
+The command side and query side are kept separate so write and read responsibilities remain independent.
