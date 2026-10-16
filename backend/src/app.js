@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import eventRoutes from "./routes/event.routes.js";
 
 const app = express();
 
@@ -13,6 +14,17 @@ app.get("/health", (_req, res) => {
     success: true,
     service: "audit-trail-backend",
     message: "Backend is running",
+  });
+});
+
+app.use("/api/events", eventRoutes);
+
+app.use((error, _req, res, _next) => {
+  console.error(error);
+
+  res.status(500).json({
+    success: false,
+    message: "Internal server error",
   });
 });
 
