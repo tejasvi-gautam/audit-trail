@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import {
-  Activity, AlertTriangle, Anchor, ArrowUpRight, Box,
+  Activity, AlertTriangle, Anchor, ArrowUpRight, Bell, Box,
   CalendarClock, CheckCircle2, ChevronDown, ChevronRight,
   CircleHelp, Clock3, Download, Fingerprint, GitBranch,
   Layers3, LockKeyhole, MapPin, Package, Search,
@@ -162,6 +162,7 @@ function App() {
   const [activeTab, setActiveTab] = useState("Timeline");
   const [showAllEvents, setShowAllEvents] = useState(true);
   const [notice, setNotice] = useState("");
+  const [isWatching, setIsWatching] = useState(false);
 
   const shipment = shipments[activeId];
   const events = shipment.events;
@@ -179,6 +180,7 @@ function App() {
       setActiveId(id);
       setSelectedEvent(0);
       setShowAllEvents(true);
+      setIsWatching(false);
       setNotice("");
     } else {
       setNotice(
@@ -192,6 +194,7 @@ function App() {
     setActiveId(id);
     setSelectedEvent(0);
     setShowAllEvents(true);
+    setIsWatching(false);
     setNotice("");
   }
 
@@ -322,10 +325,30 @@ function App() {
             </p>
           </div>
 
-          <button className="button button-secondary" onClick={exportAudit}>
-            <Download size={16} /> Export audit log
-          </button>
+          <div className="heading-actions">
+            <button
+              className={isWatching ? "button button-watch watching" : "button button-watch"}
+              onClick={() => setIsWatching(value => !value)}
+              aria-pressed={isWatching}
+            >
+              <Bell size={16} /> {isWatching ? "Watching shipment" : "Watch shipment"}
+            </button>
+            <button className="button button-secondary" onClick={exportAudit}>
+              <Download size={16} /> Export audit log
+            </button>
+          </div>
         </section>
+
+        {isWatching && (
+          <div className="watch-banner" role="status">
+            <span className="watch-pulse"><Bell size={14} /></span>
+            <div>
+              <strong>Live watch enabled for {shipment.id}</strong>
+              <span>New events and sensor excursions will appear in this workspace.</span>
+            </div>
+            <button onClick={() => setIsWatching(false)} aria-label="Stop watching shipment">Stop watching</button>
+          </div>
+        )}
 
         <section className="search-panel" id="containers">
           <div className="search-intro">
@@ -637,10 +660,14 @@ function App() {
                       <stop offset="95%" stopColor="#238bdf" stopOpacity={0.015} />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid stroke="#edf1f5" strokeDasharray="3 5" vertical={false} />
-                  <XAxis dataKey="time" tick={{ fill: "#8b96a5", fontSize: 10 }} axisLine={false} tickLine={false} interval={2} />
-                  <YAxis domain={[0, 12]} ticks={[0, 4, 8, 12]} tick={{ fill: "#8b96a5", fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <Tooltip formatter={value => [`${value}°C`, "Temperature"]} />
+                  <CartesianGrid stroke="#22344a" strokeDasharray="3 5" vertical={false} />
+                  <XAxis dataKey="time" tick={{ fill: "#8094ac", fontSize: 10 }} axisLine={false} tickLine={false} interval={2} />
+                  <YAxis domain={[0, 12]} ticks={[0, 4, 8, 12]} tick={{ fill: "#8094ac", fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <Tooltip
+                    formatter={value => [`${value}°C`, "Temperature"]}
+                    contentStyle={{ background: "#101925", border: "1px solid #29415b", borderRadius: 6, color: "#edf5ff" }}
+                    labelStyle={{ color: "#91a3bb" }}
+                  />
                   <ReferenceLine y={8} stroke="#e58b37" strokeDasharray="5 4" />
                   <Area type="monotone" dataKey="temp" stroke="#238bd7" strokeWidth={2.5} fill="url(#tempFill)" />
                 </AreaChart>

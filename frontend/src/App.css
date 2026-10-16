@@ -1412,3 +1412,116 @@ h1 {
     margin-left: 24px;
   }
 }
+
+/* Night operations theme */
+:root {
+  --ink-950: #070b12;
+  --ink-900: #0b111b;
+  --ink-850: #101925;
+  --ink-800: #151f2d;
+  --ink-700: #1d2a3b;
+  --line-dark: #233349;
+  --text-bright: #edf5ff;
+  --text-soft: #91a3bb;
+  --blue-electric: #47a9ff;
+  --cyan: #45d6ce;
+  --paper: #101925;
+}
+
+body { background: var(--ink-950); }
+.app-shell { background: radial-gradient(circle at 78% -10%, #173253 0, transparent 30%), linear-gradient(145deg, #070b12 0%, #0b111b 46%, #0d1521 100%); color: var(--text-soft); }
+.sidebar { background: rgba(7, 11, 18, 0.9); border-right: 1px solid var(--line-dark); color: #9aacbf; }
+.brand-mark { background: linear-gradient(135deg, #177bc9, #45d6ce); box-shadow: 0 0 24px #269eea45; }
+.brand strong, h1 { color: var(--text-bright); }
+.brand strong span, .eyebrow { color: var(--blue-electric); }
+.brand small, .workspace-label { color: #607a98; }
+.nav-item { color: #8195ad; }
+.nav-item:hover { background: #142235; color: #edf5ff; }
+.nav-item.active { background: #142b44; box-shadow: inset 3px 0 var(--blue-electric); }
+.nav-item.active svg { color: var(--blue-electric); }
+.nav-count { background: #1b3d60; color: #8dcbff; }
+.secure-card { border-color: #1e3b58; background: linear-gradient(145deg, #102337, #0d1827); }
+.secure-icon { background: #173b5d; color: var(--blue-electric); }
+.secure-card strong, .profile-text strong { color: #dbeaff; }
+.secure-card p, .profile-text small { color: #8095ae; }
+.secure-status, .profile { border-color: #1d3045; }
+.secure-status { color: #8db6d6; }
+.topbar { border-color: var(--line-dark); }
+.breadcrumbs { color: #647a95; }
+.breadcrumbs strong { color: #c2d3e7; }
+.topbar-right { color: #8ca2bc; }
+.icon-button { border-color: var(--line-dark); background: #101a29; color: #91a8c2; }
+.avatar { background: #173a59; color: #bfe0ff; }
+.page-heading p, .panel-header p { color: #7d91aa; }
+.button-primary { border-color: #237ec2; background: #1979c2; }
+.button-primary:hover { background: #238bd7; }
+.button-secondary, .button-watch { border-color: #2a3e56; background: #111c2a; color: #b7c9dd; }
+.button-secondary:hover, .button-watch:hover { border-color: #3976a6; background: #16283c; }
+.button-watch { color: #9ecfff; }
+.button-watch.watching { border-color: #2c9b9d; background: #10383d; color: #79eee3; }
+.heading-actions { display: flex; gap: 9px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.search-panel, .summary-card, .panel { border-color: var(--line-dark); background: linear-gradient(145deg, rgba(17, 27, 41, .98), rgba(12, 20, 31, .98)); box-shadow: 0 12px 34px #00000020; }
+.search-symbol, .metric-icon.blue, .location-icon { background: #123555; color: var(--blue-electric); }
+.search-intro strong, .panel-title, .container-id, .metric-number { color: var(--text-bright); }
+.search-intro p, .search-form, .card-label, .metric-unit, .metric-foot, .route-line, .shipment-meta span { color: #8094ac; }
+.search-form { border-color: #29415b; }
+.search-form:focus-within { border-color: var(--blue-electric); box-shadow: 0 0 0 3px #238bd72b; }
+.search-form input { color: #e7f2ff; }
+.quick-search button { background: #122a43; color: #78c2ff; }
+.search-notice { background: #3a2027; color: #ff9c9f; }
+.tiny-dot { background: var(--blue-electric); }
+.shipment-meta, .timeline-toolbar, .state-note, .rewind-current, .integrity-list div, .integrity-foot { border-color: #203044; }
+.metric-icon.green, .integrity-shield { background: #123d3d; color: #63e7cf; }
+.metric-icon.orange { background: #3b2d1d; color: #ffc16d; }
+.status-number { color: #ffc16d; }
+.version-pill { border-color: #224e76; background: #102b45; color: #82c5ff; }
+.tab { color: #7187a0; }
+.active-tab { border-bottom-color: var(--blue-electric); color: var(--blue-electric); }
+.text-button { color: #65baff; }
+.event-row { background: transparent; border-color: #1c2b3d; }
+.event-row:hover { background: #132236; }
+.event-row.selected-event { background: #102e49; }
+.event-icon.blue { background: #123b60; color: #61b8ff; }
+.event-icon.red { background: #42242b; color: #ff8e91; }
+.event-icon.green { background: #123f3c; color: #6ae1c7; }
+.event-title-line strong, .state-location strong, .state-details strong, .rewind-date strong { color: #d5e5f7; }
+.event-type, .event-location, .event-detail, .event-time, .event-time small { color: #8498b1; }
+.alert-badge { background: #42242b; color: #ff8e91; }
+.timeline-footer, .footer { color: #6f849d; }
+.timeline-footer span:first-child, .positive, .state-live, .state-note { color: #61dbca; }
+.raw-events pre { background: #0a121e; color: #9db4cf; }
+.state-location { background: #0d1b2b; border-color: #1d3853; }
+.state-location small, .state-details span, .rewind-date span { color: #738aa5; }
+.state-location span { color: #65baff; }
+.rewind-panel .panel-title svg, .rewind-current svg { color: var(--blue-electric); }
+.rewind-slider { accent-color: var(--blue-electric); }
+.slider-labels { color: #8094ac; }
+.sensor-dot { background: var(--cyan); }
+.sensor-reading strong { color: #dceeff; }
+.chart-legend, .sensor-reading small { color: #8094ac; }
+.chart-legend i { background: var(--blue-electric); }
+.sensor-alert { border-color: #5e4324; background: #2b2118; color: #ffc16d; }
+.sensor-alert strong { color: #ffd08c; }
+.sensor-alert span { color: #c2a37d; }
+.sensor-alert button { color: #ffc16d; }
+.score-ring { border-color: #1c665d; color: #6ae1c7; }
+.integrity-score strong { color: #d5e5f7; }
+.integrity-score p, .integrity-list span, .demo-disclaimer { color: #8195ad; }
+.integrity-list svg { color: #63e7cf; }
+.integrity-list strong { color: #64dbca; }
+.integrity-foot svg { color: var(--blue-electric); }
+.integrity-foot code { background: #102a43; color: #91cfff; }
+.watch-banner { display: flex; align-items: center; gap: 10px; margin-top: 11px; padding: 11px 14px; border: 1px solid #236a77; border-radius: 7px; background: linear-gradient(90deg, #10323d, #102333); color: #a9dce4; }
+.watch-banner div { flex: 1; min-width: 0; }
+.watch-banner strong, .watch-banner span { display: block; }
+.watch-banner strong { color: #d9ffff; font-size: 10px; }
+.watch-banner span { margin-top: 3px; color: #8ebac5; font-size: 9px; }
+.watch-banner button { border: 0; background: transparent; color: #76e5dd; font-size: 9px; font-weight: 700; }
+.watch-pulse { display: grid; place-items: center; width: 27px; height: 27px; flex-shrink: 0; border-radius: 7px; color: #76e5dd; background: #15535b; animation: watch-pulse 2.4s ease-in-out infinite; }
+@keyframes watch-pulse { 50% { box-shadow: 0 0 0 5px #45d6ce18; } }
+
+@media (max-width: 600px) {
+  .heading-actions { width: 100%; justify-content: stretch; }
+  .heading-actions .button { flex: 1; }
+  .watch-banner { align-items: flex-start; }
+}
