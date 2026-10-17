@@ -283,6 +283,41 @@ a {
   margin-right: 13px;
 }
 
+.active-users {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #8ca2bc;
+  white-space: nowrap;
+}
+
+.active-users strong {
+  color: #dbeaff;
+  font-weight: 700;
+}
+
+.user-stack {
+  display: flex;
+  padding-left: 7px;
+}
+
+.user-avatar {
+  width: 23px;
+  height: 23px;
+  display: grid;
+  place-items: center;
+  margin-left: -7px;
+  border: 2px solid #0b111b;
+  border-radius: 50%;
+  color: #07111c;
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.user-avatar-one { background: #8de2d5; }
+.user-avatar-two { background: #a9cdf5; }
+.user-avatar-three { background: #f2c77e; }
+
 .icon-button {
   width: 30px;
   height: 30px;
@@ -1364,6 +1399,15 @@ h1 {
 
   .live-label {
     display: none;
+  }
+
+  .active-users {
+    font-size: 9px;
+  }
+
+  .user-avatar {
+    width: 21px;
+    height: 21px;
   }
 
   .page-heading {

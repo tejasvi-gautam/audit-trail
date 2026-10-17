@@ -306,6 +306,14 @@ function App() {
           <div className="topbar-right">
             <span className="live-dot" />
             <span className="live-label">Dashboard online</span>
+            <div className="active-users" aria-label="3 users are currently using the dashboard">
+              <div className="user-stack" aria-hidden="true">
+                <span className="user-avatar user-avatar-one">LM</span>
+                <span className="user-avatar user-avatar-two">OP</span>
+                <span className="user-avatar user-avatar-three">QA</span>
+              </div>
+              <span><strong>3</strong> active users</span>
+            </div>
             <button className="icon-button" aria-label="Help">
               <CircleHelp size={18} />
             </button>
