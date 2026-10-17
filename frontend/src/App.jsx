@@ -253,20 +253,20 @@ function App() {
         </div>
 
         <nav className="side-nav">
-          <a className="nav-item active" href="#overview">
+          <a className="nav-item active" href="#overview" title="Overview">
             <Layers3 size={18} /> Overview
           </a>
-          <a className="nav-item" href="#timeline">
+          <a className="nav-item" href="#timeline" title="Event timeline">
             <Activity size={18} /> Event timeline
             <span className="nav-count">{events.length}</span>
           </a>
-          <a className="nav-item" href="#containers">
+          <a className="nav-item" href="#containers" title="Containers">
             <Box size={18} /> Containers
           </a>
-          <a className="nav-item" href="#sensors">
+          <a className="nav-item" href="#sensors" title="Sensor analytics">
             <Waves size={18} /> Sensor analytics
           </a>
-          <a className="nav-item" href="#integrity">
+          <a className="nav-item" href="#integrity" title="Integrity audit">
             <ShieldCheck size={18} /> Integrity audit
           </a>
         </nav>
@@ -300,7 +300,7 @@ function App() {
         <header className="topbar">
           <div className="breadcrumbs">
             Supply chain <ChevronRight size={14} />
-            <strong>Forensic dashboard</strong>
+            <strong>Shipment audit workspace</strong>
           </div>
 
           <div className="topbar-right">
@@ -316,12 +316,12 @@ function App() {
         <section className="page-heading" id="overview">
           <div>
             <div className="eyebrow">
-              EVENT SOURCING / COMMAND CENTER
+              SHIPMENT AUDIT WORKSPACE
             </div>
-            <h1>Forensic dashboard</h1>
+            <h1>Understand every shipment event</h1>
             <p>
-              Reconstruct shipment state. Inspect every event.
-              Keep a traceable history of your logistics operations.
+              Search for a container, select an event, and review the shipment
+              state, sensor readings, and audit details together.
             </p>
           </div>
 
@@ -356,9 +356,9 @@ function App() {
               <Search size={19} />
             </div>
             <div>
-              <strong>Look up a shipment</strong>
+              <strong>Find a shipment</strong>
               <p>
-                Search by container ID to inspect its historical event stream.
+                Enter a container ID to open its complete event history.
               </p>
             </div>
           </div>
@@ -377,7 +377,7 @@ function App() {
           </form>
 
           <div className="quick-search">
-            TRY A SAMPLE:
+            SAMPLE SHIPMENTS:
             <button onClick={() => chooseShipment("CONT-2026-0842")}>
               CONT-2026-0842
             </button>
@@ -392,7 +392,7 @@ function App() {
         <section className="summary-grid">
           <article className="summary-card shipment-card">
             <div className="card-label">
-              TRACKING CONTAINER <span className="tiny-dot" />
+              SELECTED SHIPMENT <span className="tiny-dot" />
             </div>
             <div className="container-id">{shipment.id}</div>
             <div className="route-line">
@@ -414,7 +414,7 @@ function App() {
             </div>
             <div className="metric-foot">
               <ArrowUpRight size={14} className="positive" />
-              Event versions recorded
+              Versions in this shipment history
             </div>
           </article>
 
@@ -428,7 +428,7 @@ function App() {
             <div className="metric-number status-number">Review</div>
             <div className="metric-foot">
               <CheckCircle2 size={14} className="positive" />
-              UI checks only; backend verification pending
+              Frontend status; backend verification pending
             </div>
           </article>
 
@@ -455,8 +455,8 @@ function App() {
           <article className="panel timeline-panel" id="timeline">
             <div className="panel-header">
               <div>
-                <div className="panel-title">Event timeline</div>
-                <p>Chronological history of shipment events</p>
+                <div className="panel-title">Event history</div>
+                <p>Select an event to inspect the shipment state at that moment.</p>
               </div>
               <div className="version-pill">
                 <Fingerprint size={14} /> {events.length} versions
@@ -470,8 +470,9 @@ function App() {
                     key={tab}
                     className={activeTab === tab ? "tab active-tab" : "tab"}
                     onClick={() => setActiveTab(tab)}
+                    type="button"
                   >
-                    {tab}
+                    {tab === "Timeline" ? "Visual timeline" : "Raw event data"}
                   </button>
                 ))}
               </div>
@@ -480,7 +481,7 @@ function App() {
                 className="text-button"
                 onClick={() => setShowAllEvents(value => !value)}
               >
-                {showAllEvents ? "Show recent" : "View all events"}
+                {showAllEvents ? "Show recent events" : "View all events"}
                 <ChevronRight size={14} />
               </button>
             </div>
@@ -548,8 +549,8 @@ function App() {
             <article className="panel state-panel">
               <div className="panel-header compact-header">
                 <div>
-                  <div className="panel-title">Reconstructed state</div>
-                  <p>Preview based on the selected event</p>
+                  <div className="panel-title">Shipment state</div>
+                  <p>State reconstructed from the selected event</p>
                 </div>
                 <span className="state-live"><span /> PREVIEW</span>
               </div>
@@ -591,10 +592,10 @@ function App() {
             <article className="panel rewind-panel">
               <div className="panel-header compact-header">
                 <div>
-                  <div className="panel-title">
+                    <div className="panel-title">
                     <CalendarClock size={17} /> State scrubbing
                   </div>
-                  <p>Move backward and forward through the event history</p>
+                  <p>Move through the history to see how the state changed</p>
                 </div>
               </div>
 
@@ -633,8 +634,8 @@ function App() {
           <article className="panel sensor-panel" id="sensors">
             <div className="panel-header">
               <div>
-                <div className="panel-title">Cold-chain sensor analytics</div>
-                <p>Illustrative container temperature readings</p>
+                <div className="panel-title">Temperature monitoring</div>
+                <p>Container readings compared with the 8°C safety threshold</p>
               </div>
               <div className="sensor-reading">
                 <span className="sensor-dot" />
@@ -691,8 +692,8 @@ function App() {
           <article className="panel integrity-panel" id="integrity">
             <div className="panel-header">
               <div>
-                <div className="panel-title">Integrity &amp; provenance</div>
-                <p>Audit verification overview</p>
+                <div className="panel-title">Audit integrity</div>
+                <p>What is confirmed in the interface and what needs the backend</p>
               </div>
               <div className="integrity-shield">
                 <ShieldCheck size={20} />

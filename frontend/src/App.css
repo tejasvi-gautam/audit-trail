@@ -1237,6 +1237,32 @@ h1 {
   line-height: 1.6;
 }
 
+.page-heading p {
+  max-width: 620px;
+  font-size: 12px;
+}
+
+.search-intro p,
+.panel-header p {
+  font-size: 11px;
+}
+
+.card-label {
+  font-size: 10px;
+}
+
+.event-title-line strong {
+  font-size: 11px;
+}
+
+.event-detail {
+  font-size: 10px;
+}
+
+.event-row.selected-event {
+  box-shadow: inset 3px 0 var(--blue-electric);
+}
+
 /* Footer */
 
 .footer {
