@@ -1958,6 +1958,69 @@ body { background: var(--ink-950); }
   border-color: #3479d7;
 }
 
+.preference-options .setup-option {
+  min-height: 48px;
+  border-radius: 10px;
+  background: #f2f5f8;
+}
+
+.preference-options .setup-option:hover,
+.preference-options .setup-option.selected {
+  background: linear-gradient(100deg, #e2efff, #e4f7f6);
+  border-color: #65a7d8;
+}
+
+.preference-options .setup-option-icon {
+  border-radius: 8px;
+  background: #e1eaf4;
+}
+
+.preference-options .setup-option.selected .setup-option-icon {
+  background: #c7e4ee;
+  color: #176b69;
+}
+
+.preference-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: -3px 1px 8px;
+  color: #8c97a6;
+  font-size: 8px;
+}
+
+.preference-toolbar button {
+  border: 0;
+  background: transparent;
+  color: #3275c9;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.preference-toolbar button:hover {
+  color: #195aa9;
+  text-decoration: underline;
+}
+
+.setup-option-badge {
+  margin-left: auto;
+  padding: 3px 5px;
+  border: 1px solid #cbddea;
+  border-radius: 4px;
+  background: #edf5fb;
+  color: #5b86a8;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .25px;
+  white-space: nowrap;
+}
+
+.setup-option.selected .setup-option-badge {
+  border-color: #aad3dc;
+  background: #e4f6f4;
+  color: #287f7d;
+}
+
 .setup-continue {
   min-height: 34px;
   margin-top: 14px;

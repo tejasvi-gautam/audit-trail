@@ -167,7 +167,8 @@ function App() {
   const [setupStep, setSetupStep] = useState(0);
   const [setupChoices, setSetupChoices] = useState({
     age: "",
-    discovery: ""
+    discovery: "",
+    preferences: []
   });
 
   const shipment = shipments[activeId];
@@ -243,7 +244,7 @@ function App() {
 
   const setupQuestions = [
       {
-        eyebrow: "WORKSPACE SETUP · 1 OF 2",
+        eyebrow: "WORKSPACE SETUP · 1 OF 3",
         title: "What is your age?",
         description: "This helps us tailor the experience for your team.",
         key: "age",
@@ -255,7 +256,7 @@ function App() {
         ]
       },
       {
-        eyebrow: "WORKSPACE SETUP · 2 OF 2",
+        eyebrow: "WORKSPACE SETUP · 2 OF 3",
         title: "What were you looking for when you found us?",
         description: "Choose the option that best describes what brought you here.",
         key: "discovery",
@@ -264,6 +265,19 @@ function App() {
           { label: "Event history", detail: "I needed an audit trail", icon: Activity },
           { label: "Sensor monitoring", detail: "I wanted condition updates", icon: Thermometer },
           { label: "Just exploring", detail: "I wanted to learn more", icon: Search }
+        ]
+      },
+      {
+        eyebrow: "WORKSPACE PREFERENCES · 3 OF 3",
+        title: "Which tools should be ready for you?",
+        description: "Select any preferences to make your audit workspace more useful.",
+        key: "preferences",
+        multiSelect: true,
+        options: [
+          { label: "Shipment alerts", detail: "Get notified about important events", icon: Bell, badge: "Recommended" },
+          { label: "Sensor insights", detail: "Keep condition risks in view", icon: Thermometer, badge: "Live" },
+          { label: "Audit exports", detail: "Keep reports ready to download", icon: Download, badge: "Reports" },
+          { label: "Daily operations digest", detail: "Receive a concise daily summary", icon: CalendarClock, badge: "Optional" }
         ]
       }
   ];
@@ -274,12 +288,27 @@ function App() {
   }
 
   function selectSetupChoice(key, value) {
-    setSetupChoices(current => ({ ...current, [key]: value }));
+    setSetupChoices(current => {
+      if (key !== "preferences") return { ...current, [key]: value };
+
+      const preferences = current.preferences.includes(value)
+        ? current.preferences.filter(preference => preference !== value)
+        : [...current.preferences, value];
+      return { ...current, preferences };
+    });
+  }
+
+  function setAllPreferences() {
+    const preferenceOptions = setupQuestions[2].options.map(option => option.label);
+    setSetupChoices(current => ({
+      ...current,
+      preferences: current.preferences.length === preferenceOptions.length ? [] : preferenceOptions
+    }));
   }
 
   function continueSetup() {
     const question = setupQuestions[setupStep];
-    if (!setupChoices[question.key]) {
+    if (!question.multiSelect && !setupChoices[question.key]) {
       setNotice("Please choose an option to continue.");
       return;
     }
@@ -291,7 +320,10 @@ function App() {
     }
 
     setIsSetupOpen(false);
-    setNotice(`Workspace setup complete for age ${setupChoices.age} and ${setupChoices.discovery.toLowerCase()}.`);
+    const preferences = setupChoices.preferences.length
+      ? ` Preferences enabled: ${setupChoices.preferences.join(", ")}.`
+      : " No optional preferences were selected.";
+    setNotice(`Workspace setup complete.${preferences}`);
   }
 
   return (
@@ -844,10 +876,20 @@ function App() {
               <div className="setup-eyebrow">{setupQuestions[setupStep].eyebrow}</div>
               <h2 id="setup-title">{setupQuestions[setupStep].title}</h2>
               <p className="setup-description">{setupQuestions[setupStep].description}</p>
-              <div className="setup-options">
+              {setupQuestions[setupStep].multiSelect && (
+                <div className="preference-toolbar">
+                  <span>{setupChoices.preferences.length} selected</span>
+                  <button onClick={setAllPreferences}>
+                    {setupChoices.preferences.length === setupQuestions[2].options.length ? "Clear all" : "Select all"}
+                  </button>
+                </div>
+              )}
+              <div className={setupQuestions[setupStep].multiSelect ? "setup-options preference-options" : "setup-options"}>
                 {setupQuestions[setupStep].options.map(option => {
                   const Icon = option.icon;
-                  const selected = setupChoices[setupQuestions[setupStep].key] === option.label;
+                  const selected = setupQuestions[setupStep].multiSelect
+                    ? setupChoices.preferences.includes(option.label)
+                    : setupChoices[setupQuestions[setupStep].key] === option.label;
                   return (
                     <button
                       key={option.label}
@@ -860,6 +902,7 @@ function App() {
                         <strong>{option.label}</strong>
                         <small>{option.detail}</small>
                       </span>
+                      {option.badge && <span className="setup-option-badge">{option.badge}</span>}
                       <span className="setup-radio">{selected && <CheckCircle2 size={16} />}</span>
                     </button>
                   );
