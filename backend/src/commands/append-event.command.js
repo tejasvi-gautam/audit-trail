@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { appendEvent } from "../repositories/event.repository.js";
 
-const appendEventCommandSchema = z.object({
+export const appendEventCommandSchema = z.object({
   aggregateId: z.string().trim().min(1),
   eventType: z
     .string()
