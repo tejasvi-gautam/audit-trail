@@ -5,7 +5,7 @@ import {
   CalendarClock, CheckCircle2, ChevronDown, ChevronRight,
   CircleHelp, Clock3, Download, Fingerprint, GitBranch,
   Layers3, LockKeyhole, MapPin, Package, Search,
-  ShieldCheck, Ship, Thermometer, Waves
+  ShieldCheck, Ship, Sparkles, Target, Thermometer, Waves, X
 } from "lucide-react";
 import {
   Area, AreaChart, CartesianGrid, ReferenceLine,
@@ -163,6 +163,12 @@ function App() {
   const [showAllEvents, setShowAllEvents] = useState(true);
   const [notice, setNotice] = useState("");
   const [isWatching, setIsWatching] = useState(false);
+  const [isSetupOpen, setIsSetupOpen] = useState(true);
+  const [setupStep, setSetupStep] = useState(0);
+  const [setupChoices, setSetupChoices] = useState({
+    age: "",
+    discovery: ""
+  });
 
   const shipment = shipments[activeId];
   const events = shipment.events;
@@ -233,6 +239,59 @@ function App() {
         block: "start"
       });
     }
+  }
+
+  const setupQuestions = [
+      {
+        eyebrow: "WORKSPACE SETUP · 1 OF 2",
+        title: "What is your age?",
+        description: "This helps us tailor the experience for your team.",
+        key: "age",
+        options: [
+          { label: "13–17", detail: "Teenager", icon: Target },
+          { label: "18–24", detail: "Young adult", icon: Sparkles },
+          { label: "25–34", detail: "Adult", icon: Activity },
+          { label: "35+", detail: "Experienced professional", icon: ShieldCheck }
+        ]
+      },
+      {
+        eyebrow: "WORKSPACE SETUP · 2 OF 2",
+        title: "What were you looking for when you found us?",
+        description: "Choose the option that best describes what brought you here.",
+        key: "discovery",
+        options: [
+          { label: "Shipment tracking", detail: "I wanted to follow a shipment", icon: MapPin },
+          { label: "Event history", detail: "I needed an audit trail", icon: Activity },
+          { label: "Sensor monitoring", detail: "I wanted condition updates", icon: Thermometer },
+          { label: "Just exploring", detail: "I wanted to learn more", icon: Search }
+        ]
+      }
+  ];
+
+  function openWorkspaceSetup() {
+    setSetupStep(0);
+    setIsSetupOpen(true);
+  }
+
+  function selectSetupChoice(key, value) {
+    setSetupChoices(current => ({ ...current, [key]: value }));
+  }
+
+  function continueSetup() {
+    const question = setupQuestions[setupStep];
+    if (!setupChoices[question.key]) {
+      setNotice("Please choose an option to continue.");
+      return;
+    }
+
+    if (setupStep < setupQuestions.length - 1) {
+      setSetupStep(step => step + 1);
+      setNotice("");
+      return;
+    }
+
+    setIsSetupOpen(false);
+    setNotice(`Workspace setup complete for age ${setupChoices.age} and ${setupChoices.discovery.toLowerCase()}.`);
   }
 
   return (
@@ -312,6 +371,9 @@ function App() {
               </div>
               <span><strong>You</strong> are active</span>
             </div>
+            <button className="setup-trigger" onClick={openWorkspaceSetup}>
+              <Sparkles size={15} /> Workspace setup
+            </button>
             <button className="icon-button" aria-label="Help">
               <CircleHelp size={18} />
             </button>
@@ -758,6 +820,60 @@ function App() {
           <span>Frontend demo · Sample data</span>
         </footer>
       </main>
+
+      {isSetupOpen && (
+        <div className="setup-overlay" role="presentation" onMouseDown={e => {
+          if (e.target === e.currentTarget) setIsSetupOpen(false);
+        }}>
+          <section className="setup-modal" role="dialog" aria-modal="true" aria-labelledby="setup-title">
+            <button className="setup-close" onClick={() => setIsSetupOpen(false)} aria-label="Close workspace setup">
+              <X size={17} />
+            </button>
+            <div className="setup-glow setup-glow-one" />
+            <div className="setup-glow setup-glow-two" />
+            <div className="setup-content">
+              <div className="setup-brand">
+                <span><Target size={15} /></span>
+                AuditTrail
+              </div>
+              <div className="setup-progress" aria-label={`Step ${setupStep + 1} of ${setupQuestions.length}`}>
+                {setupQuestions.map((_, index) => (
+                  <span key={index} className={index <= setupStep ? "complete" : ""} />
+                ))}
+              </div>
+              <div className="setup-eyebrow">{setupQuestions[setupStep].eyebrow}</div>
+              <h2 id="setup-title">{setupQuestions[setupStep].title}</h2>
+              <p className="setup-description">{setupQuestions[setupStep].description}</p>
+              <div className="setup-options">
+                {setupQuestions[setupStep].options.map(option => {
+                  const Icon = option.icon;
+                  const selected = setupChoices[setupQuestions[setupStep].key] === option.label;
+                  return (
+                    <button
+                      key={option.label}
+                      className={selected ? "setup-option selected" : "setup-option"}
+                      onClick={() => selectSetupChoice(setupQuestions[setupStep].key, option.label)}
+                      aria-pressed={selected}
+                    >
+                      <span className="setup-option-icon"><Icon size={16} /></span>
+                      <span className="setup-option-copy">
+                        <strong>{option.label}</strong>
+                        <small>{option.detail}</small>
+                      </span>
+                      <span className="setup-radio">{selected && <CheckCircle2 size={16} />}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <button className="setup-continue" onClick={continueSetup}>
+                {setupStep === setupQuestions.length - 1 ? "Apply preferences" : "Continue"}
+                <ChevronRight size={16} />
+              </button>
+              <button className="setup-skip" onClick={() => setIsSetupOpen(false)}>Skip for now</button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
