@@ -56,8 +56,8 @@ const immutableOperations = [
 ];
 
 immutableOperations.forEach((operation) => {
-  eventSchema.pre(operation, function (next) {
-    next(new Error("Events are immutable and cannot be changed or deleted."));
+  eventSchema.pre(operation, function () {
+    throw new Error("Events are immutable and cannot be changed or deleted.");
   });
 });
 
