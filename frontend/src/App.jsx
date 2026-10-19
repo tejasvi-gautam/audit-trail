@@ -160,6 +160,7 @@ function App() {
   const [activeId, setActiveId] = useState("CONT-2026-0842");
   const [selectedEvent, setSelectedEvent] = useState(2);
   const [activeTab, setActiveTab] = useState("Timeline");
+  const [activeSection, setActiveSection] = useState("overview");
   const [showAllEvents, setShowAllEvents] = useState(true);
   const [notice, setNotice] = useState("");
   const [isWatching, setIsWatching] = useState(false);
@@ -326,6 +327,14 @@ function App() {
     setNotice(`Workspace setup complete.${preferences}`);
   }
 
+  function navigateToSection(sectionId) {
+    setActiveSection(sectionId);
+    document.getElementById(sectionId)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -344,22 +353,47 @@ function App() {
         </div>
 
         <nav className="side-nav">
-          <a className="nav-item active" href="#overview" title="Overview">
+          <button
+            className={activeSection === "overview" ? "nav-item active" : "nav-item"}
+            onClick={() => navigateToSection("overview")}
+            title="Overview"
+            type="button"
+          >
             <Layers3 size={18} /> Overview
-          </a>
-          <a className="nav-item" href="#timeline" title="Event timeline">
+          </button>
+          <button
+            className={activeSection === "timeline" ? "nav-item active" : "nav-item"}
+            onClick={() => navigateToSection("timeline")}
+            title="Event timeline"
+            type="button"
+          >
             <Activity size={18} /> Event timeline
             <span className="nav-count">{events.length}</span>
-          </a>
-          <a className="nav-item" href="#containers" title="Containers">
+          </button>
+          <button
+            className={activeSection === "containers" ? "nav-item active" : "nav-item"}
+            onClick={() => navigateToSection("containers")}
+            title="Containers"
+            type="button"
+          >
             <Box size={18} /> Containers
-          </a>
-          <a className="nav-item" href="#sensors" title="Sensor analytics">
+          </button>
+          <button
+            className={activeSection === "sensors" ? "nav-item active" : "nav-item"}
+            onClick={() => navigateToSection("sensors")}
+            title="Sensor analytics"
+            type="button"
+          >
             <Waves size={18} /> Sensor analytics
-          </a>
-          <a className="nav-item" href="#integrity" title="Integrity audit">
+          </button>
+          <button
+            className={activeSection === "integrity" ? "nav-item active" : "nav-item"}
+            onClick={() => navigateToSection("integrity")}
+            title="Integrity audit"
+            type="button"
+          >
             <ShieldCheck size={18} /> Integrity audit
-          </a>
+          </button>
         </nav>
 
         <div className="sidebar-bottom">
