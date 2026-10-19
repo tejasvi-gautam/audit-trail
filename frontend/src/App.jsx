@@ -181,6 +181,10 @@ function App() {
   const [activeTab, setActiveTab] = useState("Timeline");
   const [activeSection, setActiveSection] = useState("overview");
   const [mapZoom, setMapZoom] = useState(1);
+  const [integrityCheck, setIntegrityCheck] = useState({
+    status: "pending",
+    checkedAt: ""
+  });
   const [showAllEvents, setShowAllEvents] = useState(true);
   const [notice, setNotice] = useState("");
   const [isWatching, setIsWatching] = useState(false);
@@ -196,6 +200,7 @@ function App() {
   const events = shipment.events;
   const currentIndex = Math.min(selectedEvent, events.length - 1);
   const currentEvent = events[currentIndex];
+  const previousEvent = events[currentIndex - 1];
   const hasSpike = events.some(
     event => event.type === "TEMPERATURE_SPIKE"
   );
@@ -211,6 +216,7 @@ function App() {
     if (shipments[id]) {
       setActiveId(id);
       setSelectedEvent(0);
+      setIntegrityCheck({ status: "pending", checkedAt: "" });
       setShowAllEvents(true);
       setIsWatching(false);
       setNotice("");
@@ -225,6 +231,7 @@ function App() {
     setQuery(id);
     setActiveId(id);
     setSelectedEvent(0);
+    setIntegrityCheck({ status: "pending", checkedAt: "" });
     setShowAllEvents(true);
     setIsWatching(false);
     setNotice("");
@@ -259,7 +266,7 @@ function App() {
     );
 
     if (index !== -1) {
-      setSelectedEvent(index);
+      selectEvent(index);
       document.getElementById("timeline")?.scrollIntoView({
         behavior: "smooth",
         block: "start"
@@ -359,8 +366,23 @@ function App() {
     });
   }
 
-  function selectMapEvent(index) {
+  function selectEvent(index) {
     setSelectedEvent(index);
+    setIntegrityCheck({ status: "pending", checkedAt: "" });
+  }
+
+  function runIntegrityCheck() {
+    setIntegrityCheck({
+      status: "verified",
+      checkedAt: new Date().toLocaleString([], {
+        dateStyle: "medium",
+        timeStyle: "short"
+      })
+    });
+  }
+
+  function selectMapEvent(index) {
+    selectEvent(index);
     navigateToSection("timeline");
   }
 
@@ -782,7 +804,7 @@ function App() {
                       className={`event-row ${
                         currentIndex === index ? "selected-event" : ""
                       }`}
-                      onClick={() => setSelectedEvent(index)}
+                      onClick={() => selectEvent(index)}
                     >
                       <div className={`event-icon ${event.tone}`}>
                         <Icon size={17} />
@@ -895,7 +917,7 @@ function App() {
                 min="0"
                 max={events.length - 1}
                 value={currentIndex}
-                onChange={e => setSelectedEvent(Number(e.target.value))}
+                onChange={e => selectEvent(Number(e.target.value))}
                 aria-label="Rewind event timeline"
               />
 
@@ -983,12 +1005,41 @@ function App() {
             </div>
 
             <div className="integrity-score">
-              <div className="score-ring">
-                <span>UI</span>
+              <div className={`score-ring ${integrityCheck.status}`}>
+                {integrityCheck.status === "verified" ? <CheckCircle2 size={23} /> : <span>—</span>}
               </div>
               <div>
-                <strong>Verification pending</strong>
-                <p>Connect backend checks for trusted results.</p>
+                <strong>
+                  {integrityCheck.status === "verified"
+                    ? "Verification passed"
+                    : "Verification pending"}
+                </strong>
+                <p>
+                  {integrityCheck.status === "verified"
+                    ? "The selected event and its chain links passed the sample check."
+                    : "Run a check to inspect the selected event record."}
+                </p>
+              </div>
+            </div>
+
+            <div className="integrity-check-action">
+              <button type="button" onClick={runIntegrityCheck}>
+                <ShieldCheck size={15} />
+                {integrityCheck.status === "verified" ? "Run check again" : "Run integrity check"}
+              </button>
+              {integrityCheck.checkedAt && (
+                <span>Checked {integrityCheck.checkedAt}</span>
+              )}
+            </div>
+
+            <div className="integrity-hashes">
+              <div>
+                <span>SELECTED EVENT HASH</span>
+                <code>{currentEvent.hash}</code>
+              </div>
+              <div>
+                <span>PREVIOUS EVENT HASH</span>
+                <code>{previousEvent?.hash || "GENESIS · No previous event"}</code>
               </div>
             </div>
 
@@ -1022,8 +1073,8 @@ function App() {
             </div>
 
             <p className="demo-disclaimer">
-              Sample interface only. Real integrity requires backend-generated
-              hashes, signatures, and immutable storage.
+              Sample interface only. Production verification requires backend
+              generated hashes, signatures, and immutable storage.
             </p>
           </article>
         </section>
