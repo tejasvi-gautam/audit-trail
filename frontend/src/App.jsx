@@ -4,7 +4,8 @@ import {
   Activity, AlertTriangle, Anchor, ArrowUpRight, Bell, Box,
   CalendarClock, CheckCircle2, ChevronDown, ChevronRight,
   CircleHelp, Clock3, Download, Fingerprint, GitBranch,
-  Layers3, LockKeyhole, MapPin, Package, Search,
+  Layers3, LockKeyhole, MapPin, MapPinned, Package, Search,
+  Navigation, Route, SearchCheck,
   ShieldCheck, Ship, Sparkles, Target, Thermometer, Waves, X
 } from "lucide-react";
 import {
@@ -22,6 +23,15 @@ const shipments = {
     status: "In transit",
     destination: "Port of Rotterdam",
     lastUpdate: "Today, 10:42 UTC",
+    trackingStatus: "In Transit",
+    originPort: "Port of Shanghai",
+    originCode: "CNSHA",
+    currentLocation: "North Atlantic Ocean",
+    destinationCode: "NLRTM",
+    eta: "Oct 22, 2026 · 14:00 UTC",
+    progress: 68,
+    vesselPosition: { x: 59, y: 43 },
+    routePath: "M 14 69 C 28 67, 37 57, 48 49 S 72 28, 88 25",
     events: [
       {
         type: "CONTAINER_CREATED",
@@ -94,6 +104,15 @@ const shipments = {
     status: "Customs review",
     destination: "Port of Hamburg",
     lastUpdate: "Today, 09:16 UTC",
+    trackingStatus: "Delayed",
+    originPort: "Jawaharlal Nehru Port",
+    originCode: "INNSA",
+    currentLocation: "Port of Hamburg",
+    destinationCode: "DEHAM",
+    eta: "Oct 24, 2026 · 08:30 UTC",
+    progress: 82,
+    vesselPosition: { x: 84, y: 27 },
+    routePath: "M 17 74 C 28 67, 40 53, 54 48 S 75 34, 88 24",
     events: [
       {
         type: "CONTAINER_CREATED",
@@ -161,6 +180,7 @@ function App() {
   const [selectedEvent, setSelectedEvent] = useState(2);
   const [activeTab, setActiveTab] = useState("Timeline");
   const [activeSection, setActiveSection] = useState("overview");
+  const [mapZoom, setMapZoom] = useState(1);
   const [showAllEvents, setShowAllEvents] = useState(true);
   const [notice, setNotice] = useState("");
   const [isWatching, setIsWatching] = useState(false);
@@ -179,6 +199,10 @@ function App() {
   const hasSpike = events.some(
     event => event.type === "TEMPERATURE_SPIKE"
   );
+
+  const originEventIndex = 0;
+  const destinationEventIndex = events.length - 1;
+  const positionEventIndex = events.findIndex(event => event.type === "VESSEL_POSITION_UPDATED");
 
   function inspectShipment(e) {
     e.preventDefault();
@@ -335,6 +359,11 @@ function App() {
     });
   }
 
+  function selectMapEvent(index) {
+    setSelectedEvent(index);
+    navigateToSection("timeline");
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -377,6 +406,14 @@ function App() {
             type="button"
           >
             <Box size={18} /> Containers
+          </button>
+          <button
+            className={activeSection === "tracking" ? "nav-item active" : "nav-item"}
+            onClick={() => navigateToSection("tracking")}
+            title="Live shipment tracking"
+            type="button"
+          >
+            <MapPinned size={18} /> Live tracking
           </button>
           <button
             className={activeSection === "sensors" ? "nav-item active" : "nav-item"}
@@ -521,6 +558,117 @@ function App() {
           </div>
 
           {notice && <div className="search-notice">{notice}</div>}
+        </section>
+
+        <section className="tracking-panel panel" id="tracking">
+          <div className="panel-header tracking-header">
+            <div>
+              <div className="panel-title"><MapPinned size={17} /> Live shipment tracking</div>
+              <p>Follow route progress, port activity, and estimated arrival in real time.</p>
+            </div>
+            <span className="tracking-live"><span /> LIVE POSITION</span>
+          </div>
+
+          <div className="tracking-layout">
+            <div className="map-stage" aria-label={`Shipment route from ${shipment.originPort} to ${shipment.destination}`}>
+              <div className="map-toolbar">
+                <span><Route size={14} /> Route overview</span>
+                <div className="map-zoom-controls">
+                  <button type="button" onClick={() => setMapZoom(value => Math.min(1.18, value + 0.06))} aria-label="Zoom in">+</button>
+                  <button type="button" onClick={() => setMapZoom(value => Math.max(1, value - 0.06))} aria-label="Zoom out">−</button>
+                </div>
+              </div>
+              <div className="map-viewport">
+                <div className="map-canvas" style={{ transform: `scale(${mapZoom})` }}>
+                  <div className="map-grid-lines" />
+                  <div className="map-landmass landmass-one" />
+                  <div className="map-landmass landmass-two" />
+                  <div className="map-landmass landmass-three" />
+                  <svg className="route-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                    <path className="route-shadow" d={shipment.routePath} />
+                    <path className="route-line-active" d={shipment.routePath} pathLength="100" style={{ strokeDasharray: `${shipment.progress} 100` }} />
+                  </svg>
+                  <button
+                    type="button"
+                    className="map-marker origin-marker"
+                    onClick={() => selectMapEvent(originEventIndex)}
+                    style={{ left: "14%", top: "69%" }}
+                    aria-label={`View origin: ${shipment.originPort}`}
+                  >
+                    <MapPin size={14} />
+                    <span>{shipment.originCode}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="map-marker current-marker"
+                    onClick={() => selectMapEvent(positionEventIndex === -1 ? Math.min(1, destinationEventIndex) : positionEventIndex)}
+                    style={{ left: `${shipment.vesselPosition.x}%`, top: `${shipment.vesselPosition.y}%` }}
+                    aria-label={`View current location: ${shipment.currentLocation}`}
+                  >
+                    <span className="marker-pulse" />
+                    <Navigation size={14} />
+                    <span>{shipment.currentLocation}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="map-marker destination-marker"
+                    onClick={() => selectMapEvent(destinationEventIndex)}
+                    style={{ left: "88%", top: "25%" }}
+                    aria-label={`View destination: ${shipment.destination}`}
+                  >
+                    <MapPin size={14} />
+                    <span>{shipment.destinationCode}</span>
+                  </button>
+                </div>
+              </div>
+              <div className="map-legend">
+                <span><i className="legend-origin" /> Origin</span>
+                <span><i className="legend-current" /> Current position</span>
+                <span><i className="legend-destination" /> Destination</span>
+              </div>
+            </div>
+
+            <aside className="tracking-details">
+              <div className="tracking-id-row">
+                <div>
+                  <span className="card-label">TRACKING CONTAINER</span>
+                  <strong>{shipment.id}</strong>
+                </div>
+                <span className={`shipment-status ${shipment.trackingStatus.toLowerCase().replace(" ", "-")}`}>
+                  <span /> {shipment.trackingStatus}
+                </span>
+              </div>
+
+              <div className="tracking-progress">
+                <div className="progress-labels">
+                  <span>Route progress</span>
+                  <strong>{shipment.progress}%</strong>
+                </div>
+                <div className="progress-track"><span style={{ width: `${shipment.progress}%` }} /></div>
+              </div>
+
+              <div className="tracking-route">
+                <div className="route-stop">
+                  <span className="route-stop-icon origin"><MapPin size={14} /></span>
+                  <div><small>ORIGIN</small><strong>{shipment.originPort}</strong><span>{shipment.originCode}</span></div>
+                </div>
+                <div className="route-connector" />
+                <div className="route-stop">
+                  <span className="route-stop-icon destination"><MapPin size={14} /></span>
+                  <div><small>DESTINATION</small><strong>{shipment.destination}</strong><span>{shipment.destinationCode}</span></div>
+                </div>
+              </div>
+
+              <div className="eta-card">
+                <div className="eta-icon"><Clock3 size={16} /></div>
+                <div><small>ESTIMATED ARRIVAL</small><strong>{shipment.eta}</strong><span>Last update: {shipment.lastUpdate}</span></div>
+              </div>
+
+              <button className="tracking-action" type="button" onClick={() => navigateToSection("timeline")}>
+                <SearchCheck size={15} /> Inspect shipment events <ChevronRight size={15} />
+              </button>
+            </aside>
+          </div>
         </section>
 
         <section className="summary-grid">

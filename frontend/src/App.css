@@ -2480,3 +2480,528 @@ h1 {
     font-size: 9px;
   }
 }
+
+/* Live shipment tracking */
+.tracking-panel {
+  margin-top: 14px;
+}
+
+.tracking-header {
+  align-items: center;
+}
+
+.tracking-header .panel-title svg {
+  color: var(--cyan);
+}
+
+.tracking-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid rgba(65, 210, 187, .22);
+  border-radius: 6px;
+  color: #6ae1c7;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .8px;
+  white-space: nowrap;
+}
+
+.tracking-live > span,
+.shipment-status > span {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 4px rgba(74, 220, 191, .1);
+}
+
+.tracking-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(270px, .8fr);
+  gap: 15px;
+  padding: 0 19px 19px;
+}
+
+.map-stage {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #1e3a53;
+  border-radius: 12px;
+  background: #091522;
+}
+
+.map-toolbar,
+.map-legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  color: #8da7c1;
+  font-size: 9px;
+}
+
+.map-toolbar > span,
+.map-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.map-toolbar svg {
+  color: var(--blue-electric);
+}
+
+.map-zoom-controls {
+  display: flex;
+  gap: 4px;
+}
+
+.map-zoom-controls button {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 22px;
+  border: 1px solid #29445d;
+  border-radius: 5px;
+  background: #102438;
+  color: #a7c4dd;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.map-zoom-controls button:hover {
+  border-color: var(--blue-electric);
+  color: white;
+}
+
+.map-viewport {
+  height: 285px;
+  overflow: hidden;
+  border-top: 1px solid #183148;
+  border-bottom: 1px solid #183148;
+}
+
+.map-canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  transform-origin: center;
+  transition: transform .25s ease;
+  background:
+    radial-gradient(circle at 24% 37%, rgba(37, 113, 153, .14), transparent 25%),
+    radial-gradient(circle at 80% 63%, rgba(38, 95, 150, .18), transparent 28%),
+    #091b2a;
+}
+
+.map-grid-lines {
+  position: absolute;
+  inset: 0;
+  opacity: .42;
+  background-image:
+    linear-gradient(rgba(70, 133, 166, .16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(70, 133, 166, .16) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+.map-landmass {
+  position: absolute;
+  opacity: .75;
+  border: 1px solid rgba(82, 139, 119, .32);
+  background: #15362f;
+  filter: drop-shadow(0 8px 10px rgba(0, 0, 0, .12));
+}
+
+.landmass-one {
+  width: 27%;
+  height: 32%;
+  left: 5%;
+  top: 6%;
+  border-radius: 58% 42% 63% 37% / 43% 54% 46% 57%;
+  transform: rotate(-18deg);
+}
+
+.landmass-two {
+  width: 21%;
+  height: 28%;
+  left: 37%;
+  top: 54%;
+  border-radius: 45% 55% 34% 66% / 57% 39% 61% 43%;
+  transform: rotate(22deg);
+}
+
+.landmass-three {
+  width: 22%;
+  height: 35%;
+  right: 5%;
+  top: 5%;
+  border-radius: 55% 45% 62% 38% / 38% 53% 47% 62%;
+  transform: rotate(23deg);
+}
+
+.route-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.route-shadow,
+.route-line-active {
+  fill: none;
+  stroke-linecap: round;
+  stroke-width: 1.2;
+  vector-effect: non-scaling-stroke;
+}
+
+.route-shadow {
+  stroke: rgba(99, 158, 188, .36);
+  stroke-dasharray: 3 3;
+}
+
+.route-line-active {
+  stroke: var(--cyan);
+  filter: drop-shadow(0 0 4px rgba(69, 214, 206, .52));
+}
+
+.map-marker {
+  position: absolute;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  border-radius: 6px;
+  padding: 4px 6px;
+  transform: translate(-50%, -50%);
+  background: #102b42;
+  color: #b9d5e9;
+  font-size: 8px;
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: 0 5px 14px rgba(0, 0, 0, .28);
+}
+
+.map-marker:hover {
+  background: #1c4e72;
+  color: white;
+}
+
+.origin-marker svg {
+  color: #77b9ed;
+}
+
+.destination-marker svg {
+  color: #ffbd67;
+}
+
+.current-marker {
+  background: #123f4a;
+  color: #7ce9dc;
+}
+
+.current-marker svg {
+  position: relative;
+  z-index: 1;
+}
+
+.marker-pulse {
+  position: absolute;
+  left: 9px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #65e6d5;
+  animation: tracking-pulse 2s ease-out infinite;
+}
+
+@keyframes tracking-pulse {
+  0% { opacity: .75; transform: scale(.8); }
+  70%, 100% { opacity: 0; transform: scale(3.2); }
+}
+
+.map-legend {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 14px;
+  color: #718ca6;
+}
+
+.map-legend i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #77b9ed;
+}
+
+.map-legend .legend-current {
+  background: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(69, 214, 206, .12);
+}
+
+.map-legend .legend-destination {
+  background: #ffbd67;
+}
+
+.tracking-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #1e3a53;
+  border-radius: 12px;
+  background: rgba(10, 22, 35, .62);
+}
+
+.tracking-id-row,
+.progress-labels {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tracking-id-row strong {
+  display: block;
+  margin-top: 6px;
+  color: #e1efff;
+  font: 800 14px Manrope, sans-serif;
+  overflow-wrap: anywhere;
+}
+
+.shipment-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 7px;
+  border-radius: 5px;
+  color: #64dbca;
+  background: #123d3d;
+  font-size: 8px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.shipment-status.delayed {
+  color: #ffc16d;
+  background: #3b2d1d;
+}
+
+.shipment-status.delivered {
+  color: #8de2a5;
+  background: #173b2d;
+}
+
+.tracking-progress {
+  margin-top: 19px;
+}
+
+.progress-labels {
+  align-items: center;
+  color: #8094ac;
+  font-size: 9px;
+}
+
+.progress-labels strong {
+  color: #62dace;
+  font-size: 10px;
+}
+
+.progress-track {
+  height: 6px;
+  margin-top: 8px;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #1d3043;
+}
+
+.progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #258bd7, #45d6ce);
+  box-shadow: 0 0 12px rgba(69, 214, 206, .35);
+}
+
+.tracking-route {
+  margin-top: 18px;
+}
+
+.route-stop {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.route-stop-icon {
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  flex-shrink: 0;
+  border-radius: 8px;
+}
+
+.route-stop-icon.origin {
+  color: #77b9ed;
+  background: #123555;
+}
+
+.route-stop-icon.destination {
+  color: #ffbd67;
+  background: #3b2d1d;
+}
+
+.route-stop div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.route-stop small,
+.eta-card small {
+  color: #738aa5;
+  font-size: 7px;
+  letter-spacing: .8px;
+}
+
+.route-stop strong {
+  color: #d6e6f7;
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+
+.route-stop div > span {
+  color: #8299b0;
+  font-size: 8px;
+}
+
+.route-connector {
+  width: 1px;
+  height: 15px;
+  margin: 2px 0 2px 13px;
+  border-left: 1px dashed #39607c;
+}
+
+.eta-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 17px;
+  padding: 10px;
+  border: 1px solid #244a5d;
+  border-radius: 8px;
+  background: linear-gradient(100deg, #103342, #102638);
+}
+
+.eta-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 7px;
+  color: #75e2d6;
+  background: #15515b;
+}
+
+.eta-card div:last-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.eta-card strong {
+  color: #d9ffff;
+  font-size: 10px;
+}
+
+.eta-card span {
+  color: #86b7c2;
+  font-size: 8px;
+}
+
+.tracking-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 35px;
+  margin-top: auto;
+  padding: 0 8px;
+  border: 1px solid #2a5c78;
+  border-radius: 7px;
+  background: #102b42;
+  color: #8ecbff;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.tracking-action svg:last-child {
+  margin-left: auto;
+}
+
+.tracking-action:hover {
+  border-color: var(--blue-electric);
+  background: #163b5a;
+  color: white;
+}
+
+@media (max-width: 850px) {
+  .tracking-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .tracking-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+
+  .tracking-progress,
+  .tracking-route,
+  .eta-card,
+  .tracking-action {
+    margin-top: 0;
+  }
+
+  .tracking-action {
+    align-self: end;
+  }
+}
+
+@media (max-width: 600px) {
+  .tracking-layout {
+    padding: 0 13px 13px;
+  }
+
+  .tracking-header {
+    align-items: flex-start;
+  }
+
+  .tracking-live {
+    font-size: 7px;
+  }
+
+  .map-viewport {
+    height: 245px;
+  }
+
+  .map-marker {
+    font-size: 7px;
+  }
+
+  .tracking-details {
+    display: flex;
+  }
+
+  .tracking-action {
+    margin-top: 15px;
+  }
+}
