@@ -6,7 +6,8 @@ import {
   CircleHelp, Clock3, Download, Fingerprint, GitBranch,
   Layers3, LockKeyhole, MapPin, MapPinned, Package, Search,
   Navigation, Route, SearchCheck,
-  ShieldCheck, Ship, Sparkles, Target, Thermometer, Waves, X, Command
+  ShieldCheck, Ship, Sparkles, Target, Thermometer, Waves, X, Command,
+  CheckCheck, CircleAlert, SlidersHorizontal
 } from "lucide-react";
 import {
   Area, AreaChart, CartesianGrid, ReferenceLine,
@@ -164,6 +165,49 @@ const temperatureData = [
   { time: "23:59", temp: 4.3 }
 ];
 
+const alerts = [
+  {
+    id: "alert-temp-0842",
+    shipmentId: "CONT-2026-0842",
+    type: "Temperature",
+    severity: "critical",
+    title: "Temperature exceeded safe limits",
+    detail: "Sensor reached 9.4°C, above the 8°C safety threshold.",
+    timestamp: "Oct 14, 2026 · 03:18 UTC",
+    eventIndex: 2
+  },
+  {
+    id: "alert-inventory-0842",
+    shipmentId: "CONT-2026-0842",
+    type: "Inventory",
+    severity: "warning",
+    title: "Unexpected inventory change",
+    detail: "Manifest quantity differs from the latest warehouse count.",
+    timestamp: "Oct 15, 2026 · 19:22 UTC",
+    eventIndex: 4
+  },
+  {
+    id: "alert-delay-0197",
+    shipmentId: "CONT-2026-0197",
+    type: "Delay",
+    severity: "warning",
+    title: "Shipment arrival delayed",
+    detail: "Customs review is holding the container at the destination port.",
+    timestamp: "Today · 09:16 UTC",
+    eventIndex: 2
+  },
+  {
+    id: "alert-missing-0197",
+    shipmentId: "CONT-2026-0197",
+    type: "Missing record",
+    severity: "info",
+    title: "Event record needs confirmation",
+    detail: "A handoff scan between vessel discharge and customs intake is missing.",
+    timestamp: "Oct 16, 2026 · 10:05 UTC",
+    eventIndex: 2
+  }
+];
+
 function getEventIcon(type) {
   if (type.includes("TEMPERATURE") || type.includes("TEMP")) {
     return Thermometer;
@@ -208,6 +252,9 @@ function App() {
   const [commandQuery, setCommandQuery] = useState("");
   const [activeCommand, setActiveCommand] = useState(0);
   const commandInputRef = useRef(null);
+  const [isAlertsOpen, setIsAlertsOpen] = useState(false);
+  const [alertFilter, setAlertFilter] = useState("All");
+  const [readAlertIds, setReadAlertIds] = useState([]);
 
   const shipment = shipments[activeId];
   const events = shipment.events;
@@ -217,6 +264,13 @@ function App() {
   const hasSpike = events.some(
     event => event.type === "TEMPERATURE_SPIKE"
   );
+  const shipmentAlerts = alerts.filter(alert => alert.shipmentId === activeId);
+  const filteredAlerts = shipmentAlerts.filter(alert =>
+    alertFilter === "All" || alert.type === alertFilter
+  );
+  const unreadAlertCount = shipmentAlerts.filter(
+    alert => !readAlertIds.includes(alert.id)
+  ).length;
 
   const commandActions = [
     {
@@ -462,6 +516,26 @@ function App() {
     navigateToSection("timeline");
   }
 
+  function markAlertRead(alertId) {
+    setReadAlertIds(current => current.includes(alertId) ? current : [...current, alertId]);
+  }
+
+  function openAlert(alert) {
+    markAlertRead(alert.id);
+    setIsAlertsOpen(false);
+    if (alert.shipmentId !== activeId) {
+      chooseShipment(alert.shipmentId);
+    }
+    selectEvent(alert.eventIndex);
+    navigateToSection("timeline");
+  }
+
+  function markAllAlertsRead() {
+    setReadAlertIds(current => [
+      ...new Set([...current, ...shipmentAlerts.map(alert => alert.id)])
+    ]);
+  }
+
   function handleCommandKeyDown(event) {
     if (event.key === "ArrowDown") {
       event.preventDefault();
@@ -593,6 +667,69 @@ function App() {
             <button className="icon-button" aria-label="Help">
               <CircleHelp size={18} />
             </button>
+            <div className="alerts-anchor">
+              <button
+                className={isAlertsOpen ? "icon-button alert-trigger active" : "icon-button alert-trigger"}
+                type="button"
+                onClick={() => setIsAlertsOpen(value => !value)}
+                aria-label={`${unreadAlertCount} unread alerts`}
+                aria-expanded={isAlertsOpen}
+              >
+                <Bell size={17} />
+                {unreadAlertCount > 0 && <span className="alert-count">{unreadAlertCount}</span>}
+              </button>
+              {isAlertsOpen && (
+                <section className="alerts-panel" aria-label="Shipment alerts">
+                  <div className="alerts-header">
+                    <div>
+                      <strong>Smart alerts</strong>
+                      <span>{unreadAlertCount ? `${unreadAlertCount} unread for this shipment` : "All caught up"}</span>
+                    </div>
+                    <button type="button" onClick={markAllAlertsRead} disabled={!unreadAlertCount}>
+                      <CheckCheck size={14} /> Mark all read
+                    </button>
+                  </div>
+                  <div className="alerts-filters" role="group" aria-label="Filter alerts">
+                    {["All", "Temperature", "Delay", "Missing record", "Inventory"].map(filter => (
+                      <button
+                        key={filter}
+                        type="button"
+                        className={alertFilter === filter ? "active" : ""}
+                        onClick={() => setAlertFilter(filter)}
+                      >
+                        {filter === "All" && <SlidersHorizontal size={11} />}
+                        {filter}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="alerts-list">
+                    {filteredAlerts.length ? filteredAlerts.map(alert => (
+                      <button
+                        key={alert.id}
+                        type="button"
+                        className={readAlertIds.includes(alert.id) ? "alert-item read" : "alert-item"}
+                        onClick={() => openAlert(alert)}
+                      >
+                        <span className={`alert-severity ${alert.severity}`}>
+                          {alert.severity === "critical" ? <CircleAlert size={15} /> : <Bell size={14} />}
+                        </span>
+                        <span className="alert-copy">
+                          <span className="alert-title-row">
+                            <strong>{alert.title}</strong>
+                            <em>{alert.severity}</em>
+                          </span>
+                          <small>{alert.detail}</small>
+                          <span className="alert-meta">{alert.type} · {alert.timestamp}</span>
+                        </span>
+                        {!readAlertIds.includes(alert.id) && <span className="unread-dot" />}
+                      </button>
+                    )) : (
+                      <div className="alerts-empty">No alerts match this filter.</div>
+                    )}
+                  </div>
+                </section>
+              )}
+            </div>
             <button
               className="command-trigger"
               type="button"
