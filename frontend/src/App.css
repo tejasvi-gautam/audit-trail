@@ -760,10 +760,25 @@ h1 {
 
 .event-row.selected-event {
   background: #edf7f4;
+  box-shadow: inset 3px 0 #176b69;
+}
+
+.event-marker {
+  position: relative;
+  flex: 0 0 31px;
+}
+
+.event-row:not(:last-child) .event-marker::after {
+  content: "";
+  position: absolute;
+  top: 32px;
+  bottom: -29px;
+  left: 15px;
+  width: 1px;
+  background: #d9e6e2;
 }
 
 .event-icon {
-  flex: 0 0 31px;
   width: 31px;
   height: 31px;
   border-radius: 9px;
@@ -837,6 +852,25 @@ h1 {
   color: #8a96a5;
   font-size: 9px;
   line-height: 1.5;
+}
+
+.event-id {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  color: #a1abb6;
+  font-size: 7px;
+  letter-spacing: 0.7px;
+  font-weight: 700;
+}
+
+.event-id code {
+  color: #6e8390;
+  font-family: "DM Sans", sans-serif;
+  font-size: 8px;
+  letter-spacing: 0;
+  font-weight: 600;
 }
 
 .event-time {
@@ -955,6 +989,91 @@ h1 {
   margin-top: 5px;
   color: #2789c9;
   font-size: 9px;
+}
+
+.selected-event-detail {
+  margin: 13px 17px 0;
+  padding: 13px;
+  border: 1px solid #dcebe7;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #f5fbf9, #f8fbfc);
+}
+
+.selected-event-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  color: #7c928d;
+  font-size: 8px;
+  letter-spacing: 0.9px;
+  font-weight: 800;
+}
+
+.detail-status {
+  border-radius: 4px;
+  padding: 3px 5px;
+  font-size: 7px;
+  letter-spacing: 0.5px;
+}
+
+.detail-status.blue {
+  color: #287da9;
+  background: #e8f4fa;
+}
+
+.detail-status.red {
+  color: #c5544b;
+  background: #fff0ee;
+}
+
+.detail-status.green {
+  color: #208b69;
+  background: #e4f6ee;
+}
+
+.selected-event-detail > strong {
+  display: block;
+  margin-top: 9px;
+  color: #34465b;
+  font-size: 11px;
+}
+
+.selected-event-detail > p {
+  margin: 5px 0 12px;
+  color: #778895;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.event-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  border-top: 1px solid #e3eeeb;
+  padding-top: 10px;
+}
+
+.event-detail-grid span {
+  display: block;
+  margin-bottom: 4px;
+  color: #91a39f;
+  font-size: 8px;
+}
+
+.event-detail-grid strong,
+.event-detail-grid code {
+  display: block;
+  color: #526b6b;
+  font-family: "DM Sans", sans-serif;
+  font-size: 9px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.event-detail-grid code {
+  color: #287a78;
+  font-weight: 700;
 }
 
 .state-details {
@@ -1466,6 +1585,10 @@ h1 {
     padding: 4px 11px 0;
   }
 
+  .event-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
   .timeline-footer {
     padding: 12px;
     font-size: 8px;
@@ -1549,6 +1672,9 @@ body { background: var(--ink-950); }
 .event-row { background: transparent; border-color: #1c2b3d; }
 .event-row:hover { background: #132236; }
 .event-row.selected-event { background: #102e49; }
+.event-row:not(:last-child) .event-marker::after { background: #29435a; }
+.event-id { color: #7189a4; }
+.event-id code { color: #9bc8ec; }
 .event-icon.blue { background: #123b60; color: #61b8ff; }
 .event-icon.red { background: #42242b; color: #ff8e91; }
 .event-icon.green { background: #123f3c; color: #6ae1c7; }
@@ -1559,6 +1685,17 @@ body { background: var(--ink-950); }
 .timeline-footer span:first-child, .positive, .state-live, .state-note { color: #61dbca; }
 .raw-events pre { background: #0a121e; color: #9db4cf; }
 .state-location { background: #0d1b2b; border-color: #1d3853; }
+.selected-event-detail { border-color: #21445c; background: linear-gradient(135deg, #102a3c, #101f30); }
+.selected-event-heading { color: #83a5bc; }
+.detail-status.blue { color: #8ccfff; background: #123b60; }
+.detail-status.red { color: #ff9b9d; background: #42242b; }
+.detail-status.green { color: #7ce8d0; background: #123f3c; }
+.selected-event-detail > strong { color: #e0edfb; }
+.selected-event-detail > p { color: #8498b1; }
+.event-detail-grid { border-color: #244057; }
+.event-detail-grid span { color: #7892ad; }
+.event-detail-grid strong { color: #b9d0e4; }
+.event-detail-grid code { color: #8dcbff; }
 .state-location small, .state-details span, .rewind-date span { color: #738aa5; }
 .state-location span { color: #65baff; }
 .rewind-panel .panel-title svg, .rewind-current svg { color: var(--blue-electric); }

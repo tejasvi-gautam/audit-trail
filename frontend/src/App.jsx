@@ -174,6 +174,15 @@ function getEventIcon(type) {
   return Package;
 }
 
+function getEventId(shipmentId, event) {
+  return `${shipmentId}-EVT-${String(event.version).padStart(3, "0")}`;
+}
+
+function getPreviousState(events, index) {
+  if (index === 0) return "Genesis state · No previous event";
+  return `After "${events[index - 1].title}" · v${events[index - 1].version}`;
+}
+
 function App() {
   const [query, setQuery] = useState("CONT-2026-0842");
   const [activeId, setActiveId] = useState("CONT-2026-0842");
@@ -805,9 +814,13 @@ function App() {
                         currentIndex === index ? "selected-event" : ""
                       }`}
                       onClick={() => selectEvent(index)}
+                      aria-pressed={currentIndex === index}
+                      type="button"
                     >
-                      <div className={`event-icon ${event.tone}`}>
-                        <Icon size={17} />
+                      <div className="event-marker">
+                        <div className={`event-icon ${event.tone}`}>
+                          <Icon size={17} />
+                        </div>
                       </div>
 
                       <div className="event-main">
@@ -822,6 +835,9 @@ function App() {
                           <MapPin size={12} /> {event.location}
                         </div>
                         <div className="event-detail">{event.detail}</div>
+                        <div className="event-id">
+                          EVENT ID <code>{getEventId(shipment.id, event)}</code>
+                        </div>
                       </div>
 
                       <div className="event-time">
@@ -865,6 +881,27 @@ function App() {
                   <small>LOCATION AT SELECTED EVENT</small>
                   <strong>{currentEvent.location}</strong>
                   <span>{shipment.status}</span>
+                </div>
+              </div>
+
+              <div className="selected-event-detail">
+                <div className="selected-event-heading">
+                  <span>SELECTED EVENT</span>
+                  <span className={`detail-status ${currentEvent.tone}`}>
+                    {currentEvent.type.replaceAll("_", " ")}
+                  </span>
+                </div>
+                <strong>{currentEvent.title}</strong>
+                <p>{currentEvent.detail}</p>
+                <div className="event-detail-grid">
+                  <div>
+                    <span>Event ID</span>
+                    <code>{getEventId(shipment.id, currentEvent)}</code>
+                  </div>
+                  <div>
+                    <span>Previous state</span>
+                    <strong>{getPreviousState(events, currentIndex)}</strong>
+                  </div>
                 </div>
               </div>
 
