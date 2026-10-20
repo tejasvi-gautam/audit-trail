@@ -1,12 +1,12 @@
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Activity, AlertTriangle, Anchor, ArrowUpRight, Bell, Box,
   CalendarClock, CheckCircle2, ChevronDown, ChevronRight,
   CircleHelp, Clock3, Download, Fingerprint, GitBranch,
   Layers3, LockKeyhole, MapPin, MapPinned, Package, Search,
   Navigation, Route, SearchCheck,
-  ShieldCheck, Ship, Sparkles, Target, Thermometer, Waves, X
+  ShieldCheck, Ship, Sparkles, Target, Thermometer, Waves, X, Command
 } from "lucide-react";
 import {
   Area, AreaChart, CartesianGrid, ReferenceLine,
@@ -204,6 +204,10 @@ function App() {
     discovery: "",
     preferences: []
   });
+  const [isCommandOpen, setIsCommandOpen] = useState(false);
+  const [commandQuery, setCommandQuery] = useState("");
+  const [activeCommand, setActiveCommand] = useState(0);
+  const commandInputRef = useRef(null);
 
   const shipment = shipments[activeId];
   const events = shipment.events;
@@ -213,6 +217,69 @@ function App() {
   const hasSpike = events.some(
     event => event.type === "TEMPERATURE_SPIKE"
   );
+
+  const commandActions = [
+    {
+      id: "find-container",
+      label: "Find a container",
+      description: "Search by container ID and inspect its shipment",
+      icon: Search,
+      shortcut: "F",
+      run: () => {
+        setIsCommandOpen(false);
+        document.getElementById("containers")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        window.setTimeout(() => document.querySelector(".search-form input")?.focus(), 350);
+      }
+    },
+    {
+      id: "open-timeline",
+      label: "Open event timeline",
+      description: "Review every change in chronological order",
+      icon: Activity,
+      shortcut: "T",
+      run: () => {
+        setIsCommandOpen(false);
+        navigateToSection("timeline");
+      }
+    },
+    {
+      id: "open-integrity",
+      label: "Go to integrity verification",
+      description: "Verify the selected event and its chain links",
+      icon: ShieldCheck,
+      shortcut: "I",
+      run: () => {
+        setIsCommandOpen(false);
+        navigateToSection("integrity");
+      }
+    }
+  ];
+
+  const filteredCommands = commandActions.filter(action =>
+    `${action.label} ${action.description}`.toLowerCase().includes(commandQuery.toLowerCase())
+  );
+
+  useEffect(() => {
+    function handleGlobalKeyDown(event) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setIsCommandOpen(true);
+        setCommandQuery("");
+        setActiveCommand(0);
+      }
+
+      if (event.key === "Escape") {
+        setIsCommandOpen(false);
+      }
+    }
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (isCommandOpen) commandInputRef.current?.focus();
+  }, [isCommandOpen]);
 
   const originEventIndex = 0;
   const destinationEventIndex = events.length - 1;
@@ -395,6 +462,21 @@ function App() {
     navigateToSection("timeline");
   }
 
+  function handleCommandKeyDown(event) {
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setActiveCommand(index => Math.min(index + 1, filteredCommands.length - 1));
+    }
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setActiveCommand(index => Math.max(index - 1, 0));
+    }
+    if (event.key === "Enter" && filteredCommands[activeCommand]) {
+      event.preventDefault();
+      filteredCommands[activeCommand].run();
+    }
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -510,6 +592,20 @@ function App() {
             </button>
             <button className="icon-button" aria-label="Help">
               <CircleHelp size={18} />
+            </button>
+            <button
+              className="command-trigger"
+              type="button"
+              onClick={() => {
+                setIsCommandOpen(true);
+                setCommandQuery("");
+                setActiveCommand(0);
+              }}
+              aria-label="Open quick search"
+            >
+              <Search size={14} />
+              <span>Quick search</span>
+              <kbd>Ctrl K</kbd>
             </button>
             <div className="avatar small">LM</div>
           </div>
@@ -1122,6 +1218,65 @@ function App() {
           <span>Frontend demo · Sample data</span>
         </footer>
       </main>
+
+      {isCommandOpen && (
+        <div
+          className="command-overlay"
+          role="presentation"
+          onMouseDown={event => {
+            if (event.target === event.currentTarget) setIsCommandOpen(false);
+          }}
+        >
+          <section className="command-palette" role="dialog" aria-modal="true" aria-labelledby="command-title">
+            <div className="command-search">
+              <Search size={18} />
+              <input
+                ref={commandInputRef}
+                value={commandQuery}
+                onChange={event => {
+                  setCommandQuery(event.target.value);
+                  setActiveCommand(0);
+                }}
+                onKeyDown={handleCommandKeyDown}
+                placeholder="Search commands..."
+                aria-label="Search commands"
+              />
+              <kbd>ESC</kbd>
+            </div>
+            <div className="command-heading">
+              <span id="command-title">QUICK ACTIONS</span>
+              <small>Navigate your workspace</small>
+            </div>
+            <div className="command-list">
+              {filteredCommands.length ? filteredCommands.map((action, index) => {
+                const Icon = action.icon;
+                return (
+                  <button
+                    key={action.id}
+                    className={activeCommand === index ? "command-item active" : "command-item"}
+                    type="button"
+                    onMouseEnter={() => setActiveCommand(index)}
+                    onClick={action.run}
+                  >
+                    <span className="command-icon"><Icon size={17} /></span>
+                    <span className="command-copy">
+                      <strong>{action.label}</strong>
+                      <small>{action.description}</small>
+                    </span>
+                    <kbd>{action.shortcut}</kbd>
+                  </button>
+                );
+              }) : (
+                <div className="command-empty">No matching shortcuts found.</div>
+              )}
+            </div>
+            <div className="command-footer">
+              <span><Command size={13} /> Quick search</span>
+              <span><kbd>↑↓</kbd> Select <kbd>↵</kbd> Open</span>
+            </div>
+          </section>
+        </div>
+      )}
 
       {isSetupOpen && (
         <div className="setup-overlay" role="presentation" onMouseDown={e => {
