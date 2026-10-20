@@ -10,7 +10,7 @@ import {
   CheckCheck, CircleAlert, SlidersHorizontal
 } from "lucide-react";
 import {
-  Area, AreaChart, CartesianGrid, ReferenceLine,
+  Area, AreaChart, Bar, BarChart, CartesianGrid, ReferenceLine,
   ResponsiveContainer, Tooltip, XAxis, YAxis
 } from "recharts";
 import "./App.css";
@@ -208,6 +208,20 @@ const alerts = [
   }
 ];
 
+const monthlyShipmentTrends = [
+  { month: "May", shipments: 18, onTime: 15, delayed: 3 },
+  { month: "Jun", shipments: 24, onTime: 20, delayed: 4 },
+  { month: "Jul", shipments: 29, onTime: 24, delayed: 5 },
+  { month: "Aug", shipments: 36, onTime: 31, delayed: 5 },
+  { month: "Sep", shipments: 42, onTime: 35, delayed: 7 },
+  { month: "Oct", shipments: 48, onTime: 39, delayed: 9 }
+];
+
+const deliveryPerformance = [
+  { status: "On time", shipments: 164 },
+  { status: "Delayed", shipments: 33 }
+];
+
 function getEventIcon(type) {
   if (type.includes("TEMPERATURE") || type.includes("TEMP")) {
     return Thermometer;
@@ -271,6 +285,13 @@ function App() {
   const unreadAlertCount = shipmentAlerts.filter(
     alert => !readAlertIds.includes(alert.id)
   ).length;
+  const shipmentStatusTotals = [
+    { status: "In transit", shipments: Object.values(shipments).filter(item => item.status === "In transit").length },
+    { status: "Customs review", shipments: Object.values(shipments).filter(item => item.status === "Customs review").length },
+    { status: "Delivered", shipments: 38 },
+    { status: "Booked", shipments: 24 }
+  ];
+  const totalShipments = shipmentStatusTotals.reduce((total, item) => total + item.shipments, 0);
 
   const commandActions = [
     {
@@ -305,6 +326,17 @@ function App() {
       run: () => {
         setIsCommandOpen(false);
         navigateToSection("integrity");
+      }
+    },
+    {
+      id: "open-analytics",
+      label: "Open smart analytics",
+      description: "Review trends, delivery performance, and reports",
+      icon: Activity,
+      shortcut: "A",
+      run: () => {
+        setIsCommandOpen(false);
+        navigateToSection("analytics");
       }
     }
   ];
@@ -387,6 +419,24 @@ function App() {
     link.download = `${shipment.id}-audit-trail.json`;
     link.click();
 
+    URL.revokeObjectURL(url);
+  }
+
+  function exportAnalyticsCsv() {
+    const rows = [
+      ["Metric", "Category", "Value"],
+      ...shipmentStatusTotals.map(item => ["Shipments by status", item.status, item.shipments]),
+      ...monthlyShipmentTrends.map(item => ["Monthly trend", item.month, item.shipments]),
+      ...deliveryPerformance.map(item => ["Delivery performance", item.status, item.shipments]),
+      ["Average delivery time", "All shipments", "6.8 days"]
+    ];
+    const csv = rows.map(row => row.map(value => `"${String(value).replaceAll('"', '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "audittrail-analytics-report.csv";
+    link.click();
     URL.revokeObjectURL(url);
   }
 
@@ -576,6 +626,14 @@ function App() {
             type="button"
           >
             <Layers3 size={18} /> Overview
+          </button>
+          <button
+            className={activeSection === "analytics" ? "nav-item active" : "nav-item"}
+            onClick={() => navigateToSection("analytics")}
+            title="Smart analytics"
+            type="button"
+          >
+            <Activity size={18} /> Smart analytics
           </button>
           <button
             className={activeSection === "timeline" ? "nav-item active" : "nav-item"}
@@ -1201,6 +1259,100 @@ function App() {
                 <span>{currentEvent.date}</span>
               </div>
             </article>
+          </div>
+        </section>
+
+        <section className="analytics-page panel" id="analytics">
+          <div className="analytics-header">
+            <div>
+              <div className="eyebrow">OPERATIONS INTELLIGENCE</div>
+              <h2>Smart analytics &amp; reports</h2>
+              <p>Track shipment volume, delivery reliability, and operational trends across your logistics network.</p>
+            </div>
+            <button className="button button-secondary" type="button" onClick={exportAnalyticsCsv}>
+              <Download size={15} /> Download CSV report
+            </button>
+          </div>
+
+          <div className="analytics-kpis">
+            <article className="analytics-kpi">
+              <span>Total shipments</span>
+              <strong>{totalShipments}</strong>
+              <small><ArrowUpRight size={12} /> 14.6% vs last month</small>
+            </article>
+            <article className="analytics-kpi">
+              <span>On-time delivery</span>
+              <strong>83.2%</strong>
+              <small><ArrowUpRight size={12} /> 3.8% improvement</small>
+            </article>
+            <article className="analytics-kpi">
+              <span>Average delivery time</span>
+              <strong>6.8 <em>days</em></strong>
+              <small>Across completed shipments</small>
+            </article>
+            <article className="analytics-kpi">
+              <span>Delayed shipments</span>
+              <strong className="warning-number">33</strong>
+              <small>16.8% of total volume</small>
+            </article>
+          </div>
+
+          <div className="analytics-charts">
+            <article className="analytics-card trend-card">
+              <div className="analytics-card-header">
+                <div>
+                  <h3>Monthly shipment trends</h3>
+                  <p>Volume and delivery performance over the last six months</p>
+                </div>
+                <span className="analytics-period">MAY–OCT 2026</span>
+              </div>
+              <div className="analytics-chart">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={monthlyShipmentTrends} margin={{ top: 8, right: 8, left: -22, bottom: 0 }}>
+                    <CartesianGrid stroke="#22344a" strokeDasharray="3 5" vertical={false} />
+                    <XAxis dataKey="month" tick={{ fill: "#8094ac", fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: "#8094ac", fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <Tooltip
+                      contentStyle={{ background: "#101925", border: "1px solid #29415b", borderRadius: 6, color: "#edf5ff" }}
+                      labelStyle={{ color: "#91a3bb" }}
+                    />
+                    <Bar dataKey="onTime" name="On time" stackId="delivery" fill="#45d6ce" radius={[3, 3, 0, 0]} />
+                    <Bar dataKey="delayed" name="Delayed" stackId="delivery" fill="#d98b48" radius={[3, 3, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="analytics-legend"><span><i className="legend-on-time" /> On time</span><span><i className="legend-delayed" /> Delayed</span></div>
+            </article>
+
+            <article className="analytics-card status-card">
+              <div className="analytics-card-header">
+                <div>
+                  <h3>Shipments by status</h3>
+                  <p>Current operational distribution</p>
+                </div>
+                <Package size={18} />
+              </div>
+              <div className="analytics-chart status-chart">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={shipmentStatusTotals} layout="vertical" margin={{ top: 4, right: 14, left: 8, bottom: 0 }}>
+                    <CartesianGrid stroke="#22344a" strokeDasharray="3 5" horizontal={false} />
+                    <XAxis type="number" hide />
+                    <YAxis dataKey="status" type="category" width={82} tick={{ fill: "#8094ac", fontSize: 9 }} axisLine={false} tickLine={false} />
+                    <Tooltip
+                      cursor={{ fill: "#183047" }}
+                      contentStyle={{ background: "#101925", border: "1px solid #29415b", borderRadius: 6, color: "#edf5ff" }}
+                    />
+                    <Bar dataKey="shipments" name="Shipments" fill="#238bd7" radius={[0, 4, 4, 0]} barSize={16} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </article>
+          </div>
+
+          <div className="analytics-summary">
+            <div><span>Delivery split</span><strong>164 on time <em>/</em> 33 delayed</strong></div>
+            <div><span>Reporting period</span><strong>May 1 – Oct 20, 2026</strong></div>
+            <div><span>Data freshness</span><strong><span className="fresh-dot" /> Updated 4 min ago</strong></div>
           </div>
         </section>
 
