@@ -141,3 +141,12 @@ MongoDB events collection
 ```
 
 The command side and query side are kept separate so write and read responsibilities remain independent.
+
+## Testing
+
+Run these commands from the `backend` folder.
+
+### Run all tests
+
+```bash
+npm test
