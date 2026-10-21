@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "test": "node --test src/tests/event-immutability.test.js src/tests/event-command-validation.test.js src/tests/aggregate-query-validation.test.js src/tests/event-repository-ordering.test.js"
+    "test": "node --test src/tests/event-immutability.test.js src/tests/event-command-validation.test.js src/tests/aggregate-query-validation.test.js src/tests/event-repository-ordering.test.js src/tests/event-controller-validation.test.js"
   },
   "keywords": [],
   "author": "",
