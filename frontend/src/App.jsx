@@ -31,6 +31,13 @@ const shipments = {
     destinationCode: "NLRTM",
     eta: "Oct 22, 2026 · 14:00 UTC",
     progress: 68,
+    plannedProgress: 72,
+    etaPrediction: {
+      risk: "Medium",
+      revisedEta: "Oct 23, 2026 · 02:00 UTC",
+      reasons: ["Temperature excursion", "4 hours behind planned route progress"],
+      rule: "Medium risk: actual progress is more than 3 points behind plan or a sensor excursion is recorded."
+    },
     vesselPosition: { x: 59, y: 43 },
     routePath: "M 14 69 C 28 67, 37 57, 48 49 S 72 28, 88 25",
     events: [
@@ -112,6 +119,13 @@ const shipments = {
     destinationCode: "DEHAM",
     eta: "Oct 24, 2026 · 08:30 UTC",
     progress: 82,
+    plannedProgress: 90,
+    etaPrediction: {
+      risk: "High",
+      revisedEta: "Oct 25, 2026 · 16:00 UTC",
+      reasons: ["Customs review hold", "8 hours behind planned route progress"],
+      rule: "High risk: actual progress is more than 6 points behind plan or the shipment is delayed."
+    },
     vesselPosition: { x: 84, y: 27 },
     routePath: "M 17 74 C 28 67, 40 53, 54 48 S 75 34, 88 24",
     events: [
@@ -311,6 +325,7 @@ function App() {
 
   const shipment = shipments[activeId];
   const events = shipment.events;
+  const progressDelta = shipment.progress - shipment.plannedProgress;
   const currentIndex = Math.min(selectedEvent, events.length - 1);
   const currentEvent = events[currentIndex];
   const previousEvent = events[currentIndex - 1];
@@ -995,8 +1010,8 @@ function App() {
                 </div>
               </div>
               <div className="map-legend">
-                <span><i className="legend-origin" /> Origin</span>
-                <span><i className="legend-current" /> Current position</span>
+                <span><i className="legend-planned" /> Planned route</span>
+                <span><i className="legend-current" /> Actual position</span>
                 <span><i className="legend-destination" /> Destination</span>
               </div>
             </div>
@@ -1014,10 +1029,20 @@ function App() {
 
               <div className="tracking-progress">
                 <div className="progress-labels">
-                  <span>Route progress</span>
+                  <span>Actual route progress</span>
                   <strong>{shipment.progress}%</strong>
                 </div>
                 <div className="progress-track"><span style={{ width: `${shipment.progress}%` }} /></div>
+                <div className="progress-labels planned-progress-label">
+                  <span>Planned progress</span>
+                  <strong>{shipment.plannedProgress}%</strong>
+                </div>
+                <div className="progress-track planned-track"><span style={{ width: `${shipment.plannedProgress}%` }} /></div>
+                <div className={progressDelta < 0 ? "progress-delta behind" : "progress-delta"}>
+                  {progressDelta < 0
+                    ? `${Math.abs(progressDelta)} points behind plan`
+                    : `${progressDelta} points ahead of plan`}
+                </div>
               </div>
 
               <div className="tracking-route">
@@ -1034,7 +1059,26 @@ function App() {
 
               <div className="eta-card">
                 <div className="eta-icon"><Clock3 size={16} /></div>
-                <div><small>ESTIMATED ARRIVAL</small><strong>{shipment.eta}</strong><span>Last update: {shipment.lastUpdate}</span></div>
+                <div>
+                  <small>ESTIMATED ARRIVAL</small>
+                  <strong>{shipment.eta}</strong>
+                  <span>Last update: {shipment.lastUpdate}</span>
+                </div>
+              </div>
+
+              <div className={`delay-risk ${shipment.etaPrediction.risk.toLowerCase()}`}>
+                <div className="delay-risk-heading">
+                  <span><AlertTriangle size={14} /> DELAY-RISK INDICATOR</span>
+                  <strong>{shipment.etaPrediction.risk} risk</strong>
+                </div>
+                <div className="delay-risk-eta">
+                  <span>Rule-based revised ETA</span>
+                  <strong>{shipment.etaPrediction.revisedEta}</strong>
+                </div>
+                <ul>
+                  {shipment.etaPrediction.reasons.map(reason => <li key={reason}>{reason}</li>)}
+                </ul>
+                <small>{shipment.etaPrediction.rule}</small>
               </div>
 
               <button className="tracking-action" type="button" onClick={() => navigateToSection("timeline")}>

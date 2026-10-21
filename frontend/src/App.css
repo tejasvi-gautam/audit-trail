@@ -2987,6 +2987,14 @@ h1 {
   background: #77b9ed;
 }
 
+.map-legend .legend-planned {
+  width: 16px;
+  height: 0;
+  border-top: 2px dashed #77b9ed;
+  border-radius: 0;
+  background: transparent;
+}
+
 .map-legend .legend-current {
   background: var(--cyan);
   box-shadow: 0 0 0 3px rgba(69, 214, 206, .12);
@@ -3074,6 +3082,36 @@ h1 {
   border-radius: inherit;
   background: linear-gradient(90deg, #258bd7, #45d6ce);
   box-shadow: 0 0 12px rgba(69, 214, 206, .35);
+}
+
+.planned-progress-label {
+  margin-top: 10px;
+}
+
+.planned-progress-label strong {
+  color: #9ab4ca;
+}
+
+.planned-track {
+  height: 4px;
+  margin-top: 5px;
+  background: #24384b;
+}
+
+.planned-track span {
+  background: #668eac;
+  box-shadow: none;
+}
+
+.progress-delta {
+  margin-top: 6px;
+  color: #6ad8c8;
+  font-size: 8px;
+  text-align: right;
+}
+
+.progress-delta.behind {
+  color: #ffc16d;
 }
 
 .tracking-route {
@@ -3172,6 +3210,80 @@ h1 {
 .eta-card span {
   color: #86b7c2;
   font-size: 8px;
+}
+
+.delay-risk {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #594522;
+  border-radius: 8px;
+  background: #211d16;
+}
+
+.delay-risk.medium {
+  border-color: #594522;
+}
+
+.delay-risk.high {
+  border-color: #633a3e;
+  background: #25191c;
+}
+
+.delay-risk-heading,
+.delay-risk-eta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.delay-risk-heading span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #bda475;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .7px;
+}
+
+.delay-risk-heading strong {
+  color: #ffc16d;
+  font-size: 9px;
+}
+
+.delay-risk.high .delay-risk-heading strong {
+  color: #ff9295;
+}
+
+.delay-risk-eta {
+  margin-top: 8px;
+}
+
+.delay-risk-eta span {
+  color: #8d806b;
+  font-size: 8px;
+}
+
+.delay-risk-eta strong {
+  color: #f2dfbd;
+  font-size: 9px;
+}
+
+.delay-risk ul {
+  display: grid;
+  gap: 3px;
+  margin: 8px 0 7px;
+  padding-left: 13px;
+  color: #c2a77a;
+  font-size: 8px;
+}
+
+.delay-risk small {
+  display: block;
+  color: #8d806b;
+  font-size: 7px;
+  line-height: 1.45;
 }
 
 .tracking-action {
