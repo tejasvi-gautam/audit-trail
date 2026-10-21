@@ -245,6 +245,41 @@ function getPreviousState(events, index) {
   return `After "${events[index - 1].title}" · v${events[index - 1].version}`;
 }
 
+function getShipmentState(events, index) {
+  const state = {
+    location: "Shipment origin",
+    temperature: "4°C",
+    status: "Created",
+    custody: "Manifest sealed"
+  };
+
+  events.slice(0, index + 1).forEach(event => {
+    state.location = event.location;
+
+    if (event.type === "TEMPERATURE_SPIKE") {
+      state.temperature = "9.4°C";
+      state.status = "Temperature alert";
+    }
+    if (event.type === "TEMP_NORMALIZED") {
+      state.temperature = "4.3°C";
+      state.status = "In transit";
+    }
+    if (event.type === "LOADED_ON_SHIP") {
+      state.status = "In transit";
+      state.custody = "Loaded onto vessel";
+    }
+    if (event.type === "VESSEL_POSITION_UPDATED") {
+      state.custody = "Vessel tracking active";
+    }
+    if (event.type === "ARRIVED_AT_PORT") {
+      state.status = "Customs review";
+      state.custody = "Destination port intake";
+    }
+  });
+
+  return state;
+}
+
 function App() {
   const [query, setQuery] = useState("CONT-2026-0842");
   const [activeId, setActiveId] = useState("CONT-2026-0842");
@@ -279,6 +314,19 @@ function App() {
   const currentIndex = Math.min(selectedEvent, events.length - 1);
   const currentEvent = events[currentIndex];
   const previousEvent = events[currentIndex - 1];
+  const beforeState = currentIndex === 0
+    ? getShipmentState([], -1)
+    : getShipmentState(events, currentIndex - 1);
+  const afterState = getShipmentState(events, currentIndex);
+  const stateComparisons = [
+    { label: "Location", before: beforeState.location, after: afterState.location },
+    { label: "Temperature", before: beforeState.temperature, after: afterState.temperature },
+    { label: "Shipment status", before: beforeState.status, after: afterState.status },
+    { label: "Custody", before: beforeState.custody, after: afterState.custody }
+  ];
+  const changedStateComparisons = stateComparisons.filter(
+    comparison => comparison.before !== comparison.after
+  );
   const hasSpike = events.some(
     event => event.type === "TEMPERATURE_SPIKE"
   );
@@ -1197,6 +1245,46 @@ function App() {
                     <strong>{getPreviousState(events, currentIndex)}</strong>
                   </div>
                 </div>
+              </div>
+
+              <div className="state-comparison">
+                <div className="comparison-heading">
+                  <div>
+                    <span>BEFORE-AND-AFTER COMPARISON</span>
+                    <strong>State change at this event</strong>
+                  </div>
+                  <span className="comparison-count">
+                    {changedStateComparisons.length} changed
+                  </span>
+                </div>
+                <div className="comparison-table">
+                  <div className="comparison-table-header">
+                    <span>Field</span>
+                    <span>Before</span>
+                    <span>After</span>
+                  </div>
+                  {stateComparisons.map(comparison => {
+                    const changed = comparison.before !== comparison.after;
+                    return (
+                      <div
+                        className={changed ? "comparison-row changed" : "comparison-row"}
+                        key={comparison.label}
+                      >
+                        <strong>{comparison.label}</strong>
+                        <span>{comparison.before}</span>
+                        <span className="comparison-after">
+                          {comparison.after}
+                          {changed && <ArrowUpRight size={12} />}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="comparison-note">
+                  {changedStateComparisons.length
+                    ? "Changed fields are highlighted for the selected event."
+                    : "No tracked state fields changed at this event."}
+                </p>
               </div>
 
               <div className="state-details">
