@@ -174,17 +174,19 @@ const alerts = [
     title: "Temperature exceeded safe limits",
     detail: "Sensor reached 9.4°C, above the 8°C safety threshold.",
     timestamp: "Oct 14, 2026 · 03:18 UTC",
-    eventIndex: 2
+    eventIndex: 2,
+    targetSection: "timeline"
   },
   {
-    id: "alert-inventory-0842",
+    id: "alert-integrity-0842",
     shipmentId: "CONT-2026-0842",
-    type: "Inventory",
-    severity: "warning",
-    title: "Unexpected inventory change",
-    detail: "Manifest quantity differs from the latest warehouse count.",
-    timestamp: "Oct 15, 2026 · 19:22 UTC",
-    eventIndex: 4
+    type: "Integrity",
+    severity: "critical",
+    title: "Integrity check failed",
+    detail: "Event hash does not match the previous ledger link. Review before release.",
+    timestamp: "Today · 10:42 UTC",
+    eventIndex: 2,
+    targetSection: "integrity"
   },
   {
     id: "alert-delay-0197",
@@ -194,17 +196,19 @@ const alerts = [
     title: "Shipment arrival delayed",
     detail: "Customs review is holding the container at the destination port.",
     timestamp: "Today · 09:16 UTC",
-    eventIndex: 2
+    eventIndex: 2,
+    targetSection: "timeline"
   },
   {
-    id: "alert-missing-0197",
+    id: "alert-integrity-0197",
     shipmentId: "CONT-2026-0197",
-    type: "Missing record",
-    severity: "info",
-    title: "Event record needs confirmation",
-    detail: "A handoff scan between vessel discharge and customs intake is missing.",
-    timestamp: "Oct 16, 2026 · 10:05 UTC",
-    eventIndex: 2
+    type: "Integrity",
+    severity: "critical",
+    title: "Integrity check failed",
+    detail: "A handoff record is missing from the event chain. Verification is required.",
+    timestamp: "Today · 09:18 UTC",
+    eventIndex: 2,
+    targetSection: "integrity"
   }
 ];
 
@@ -278,11 +282,10 @@ function App() {
   const hasSpike = events.some(
     event => event.type === "TEMPERATURE_SPIKE"
   );
-  const shipmentAlerts = alerts.filter(alert => alert.shipmentId === activeId);
-  const filteredAlerts = shipmentAlerts.filter(alert =>
+  const filteredAlerts = alerts.filter(alert =>
     alertFilter === "All" || alert.type === alertFilter
   );
-  const unreadAlertCount = shipmentAlerts.filter(
+  const unreadAlertCount = alerts.filter(
     alert => !readAlertIds.includes(alert.id)
   ).length;
   const shipmentStatusTotals = [
@@ -577,12 +580,12 @@ function App() {
       chooseShipment(alert.shipmentId);
     }
     selectEvent(alert.eventIndex);
-    navigateToSection("timeline");
+    navigateToSection(alert.targetSection);
   }
 
   function markAllAlertsRead() {
     setReadAlertIds(current => [
-      ...new Set([...current, ...shipmentAlerts.map(alert => alert.id)])
+      ...new Set([...current, ...alerts.map(alert => alert.id)])
     ]);
   }
 
@@ -737,18 +740,18 @@ function App() {
                 {unreadAlertCount > 0 && <span className="alert-count">{unreadAlertCount}</span>}
               </button>
               {isAlertsOpen && (
-                <section className="alerts-panel" aria-label="Shipment alerts">
+                <section className="alerts-panel" aria-label="Notification center">
                   <div className="alerts-header">
                     <div>
-                      <strong>Smart alerts</strong>
-                      <span>{unreadAlertCount ? `${unreadAlertCount} unread for this shipment` : "All caught up"}</span>
+                      <strong>Notification center</strong>
+                      <span>{unreadAlertCount ? `${unreadAlertCount} unread across all shipments` : "All caught up"}</span>
                     </div>
                     <button type="button" onClick={markAllAlertsRead} disabled={!unreadAlertCount}>
                       <CheckCheck size={14} /> Mark all read
                     </button>
                   </div>
                   <div className="alerts-filters" role="group" aria-label="Filter alerts">
-                    {["All", "Temperature", "Delay", "Missing record", "Inventory"].map(filter => (
+                    {["All", "Delay", "Temperature", "Integrity"].map(filter => (
                       <button
                         key={filter}
                         type="button"
