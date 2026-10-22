@@ -7,7 +7,8 @@ import {
   Layers3, LockKeyhole, MapPin, MapPinned, Package, Search,
   Navigation, Route, SearchCheck,
   ShieldCheck, Ship, Sparkles, Target, Thermometer, Waves, X, Command,
-  CheckCheck, CircleAlert, SlidersHorizontal
+  CheckCheck, CircleAlert, SlidersHorizontal, Clipboard, FileText,
+  RotateCcw
 } from "lucide-react";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, ReferenceLine,
@@ -240,6 +241,64 @@ const deliveryPerformance = [
   { status: "Delayed", shipments: 33 }
 ];
 
+const demoShipmentRows = [
+  {
+    id: "CONT-2026-0842",
+    route: "Shanghai → Rotterdam",
+    status: "In Transit",
+    progress: 68,
+    eta: "Oct 22 · 14:00",
+    risk: "Medium",
+    temperature: "4.3°C",
+    integrity: "Pending",
+    lastUpdate: "10:42 UTC",
+    delay: 4
+  },
+  {
+    id: "CONT-2026-0197",
+    route: "Mumbai → Hamburg",
+    status: "Delayed",
+    progress: 82,
+    eta: "Oct 25 · 16:00",
+    risk: "High",
+    temperature: "5.1°C",
+    integrity: "Failed",
+    lastUpdate: "09:16 UTC",
+    delay: 8
+  },
+  {
+    id: "CONT-2026-0731",
+    route: "Busan → Long Beach",
+    status: "Delivered",
+    progress: 100,
+    eta: "Oct 18 · 11:20",
+    risk: "Low",
+    temperature: "3.9°C",
+    integrity: "Verified",
+    lastUpdate: "Oct 18 · 11:20",
+    delay: 0
+  },
+  {
+    id: "CONT-2026-0618",
+    route: "Singapore → Felixstowe",
+    status: "In Transit",
+    progress: 44,
+    eta: "Oct 29 · 07:45",
+    risk: "Low",
+    temperature: "4.0°C",
+    integrity: "Verified",
+    lastUpdate: "08:55 UTC",
+    delay: 0
+  }
+];
+
+const recentActivity = [
+  { type: "Temperature alert", detail: "CONT-2026-0842 reached 9.4°C", time: "18 min ago", tone: "critical" },
+  { type: "Port arrival", detail: "CONT-2026-0197 arrived at Hamburg", time: "1 hr ago", tone: "success" },
+  { type: "Position update", detail: "CONT-2026-0842 position validated", time: "2 hrs ago", tone: "info" },
+  { type: "Integrity review", detail: "CONT-2026-0197 requires verification", time: "3 hrs ago", tone: "warning" }
+];
+
 function getEventIcon(type) {
   if (type.includes("TEMPERATURE") || type.includes("TEMP")) {
     return Thermometer;
@@ -322,6 +381,12 @@ function App() {
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [alertFilter, setAlertFilter] = useState("All");
   const [readAlertIds, setReadAlertIds] = useState([]);
+  const [timelineQuery, setTimelineQuery] = useState("");
+  const [timelineSeverity, setTimelineSeverity] = useState("All");
+  const [shipmentTableQuery, setShipmentTableQuery] = useState("");
+  const [shipmentStatusFilter, setShipmentStatusFilter] = useState("All");
+  const [shipmentRiskFilter, setShipmentRiskFilter] = useState("All");
+  const [shipmentSort, setShipmentSort] = useState("delay");
 
   const shipment = shipments[activeId];
   const events = shipment.events;
@@ -348,6 +413,22 @@ function App() {
   const filteredAlerts = alerts.filter(alert =>
     alertFilter === "All" || alert.type === alertFilter
   );
+  const filteredEvents = events.filter(event => {
+    const matchesQuery = `${event.type} ${event.title} ${event.location} ${event.detail}`
+      .toLowerCase()
+      .includes(timelineQuery.toLowerCase());
+    const severity = event.tone === "red" ? "Critical" : event.tone === "green" ? "Success" : "Info";
+    return matchesQuery && (timelineSeverity === "All" || severity === timelineSeverity);
+  });
+  const filteredShipmentRows = demoShipmentRows
+    .filter(row => `${row.id} ${row.route} ${row.status}`.toLowerCase().includes(shipmentTableQuery.toLowerCase()))
+    .filter(row => shipmentStatusFilter === "All" || row.status === shipmentStatusFilter)
+    .filter(row => shipmentRiskFilter === "All" || row.risk === shipmentRiskFilter)
+    .sort((a, b) => shipmentSort === "eta"
+      ? a.eta.localeCompare(b.eta)
+      : shipmentSort === "progress"
+        ? b.progress - a.progress
+        : b.delay - a.delay);
   const unreadAlertCount = alerts.filter(
     alert => !readAlertIds.includes(alert.id)
   ).length;
@@ -488,6 +569,20 @@ function App() {
     URL.revokeObjectURL(url);
   }
 
+  function exportAuditCsv() {
+    const rows = [
+      ["Shipment ID", "Event ID", "Type", "Version", "Timestamp", "Location", "Hash"],
+      ...events.map(event => [shipment.id, getEventId(shipment.id, event), event.type, event.version, event.date, event.location, event.hash])
+    ];
+    const csv = rows.map(row => row.map(value => `"${String(value).replaceAll('"', '""')}"`).join(",")).join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${shipment.id}-audit-trail.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   function exportAnalyticsCsv() {
     const rows = [
       ["Metric", "Category", "Value"],
@@ -615,6 +710,18 @@ function App() {
   function selectEvent(index) {
     setSelectedEvent(index);
     setIntegrityCheck({ status: "pending", checkedAt: "" });
+  }
+
+  function copyValue(value, label) {
+    if (!navigator.clipboard) {
+      setNotice(`Unable to copy ${label.toLowerCase()} in this browser.`);
+      return;
+    }
+    navigator.clipboard.writeText(value).then(() => {
+      setNotice(`${label} copied to clipboard.`);
+    }).catch(() => {
+      setNotice(`Unable to copy ${label.toLowerCase()}.`);
+    });
   }
 
   function runIntegrityCheck() {
@@ -895,6 +1002,9 @@ function App() {
             <button className="button button-secondary" onClick={exportAudit}>
               <Download size={16} /> Export audit log
             </button>
+            <button className="button button-secondary" onClick={exportAuditCsv}>
+              <FileText size={16} /> CSV
+            </button>
           </div>
         </section>
 
@@ -946,6 +1056,49 @@ function App() {
           </div>
 
           {notice && <div className="search-notice">{notice}</div>}
+        </section>
+
+        <section className="operations-overview" aria-label="Shipment operations overview">
+          <div className="section-heading">
+            <div>
+              <div className="eyebrow">OPERATIONS OVERVIEW</div>
+              <h2>Network health at a glance</h2>
+            </div>
+            <span className="sample-badge"><span /> Demo fleet · rule-based estimates</span>
+          </div>
+          <div className="operations-kpis">
+            <article className="operation-kpi"><div className="kpi-icon blue"><Box size={17} /></div><span>Total containers</span><strong>48</strong><small>Across active routes</small></article>
+            <article className="operation-kpi"><div className="kpi-icon cyan"><Navigation size={17} /></div><span>In transit</span><strong>12</strong><small>Currently travelling</small></article>
+            <article className="operation-kpi"><div className="kpi-icon amber"><AlertTriangle size={17} /></div><span>Delayed shipments</span><strong>9</strong><small>Behind planned schedule</small></article>
+            <article className="operation-kpi"><div className="kpi-icon green"><CheckCircle2 size={17} /></div><span>Delivered</span><strong>27</strong><small>Successfully completed</small></article>
+            <article className="operation-kpi"><div className="kpi-icon red"><Thermometer size={17} /></div><span>Temperature alerts</span><strong>3</strong><small>Needs attention</small></article>
+            <article className="operation-kpi"><div className="kpi-icon purple"><ShieldCheck size={17} /></div><span>Integrity status</span><strong>41<span>/48</span></strong><small>Verified · 5 pending · 2 failed</small></article>
+          </div>
+          <div className="overview-lower">
+            <article className="activity-feed panel">
+              <div className="panel-header compact-header">
+                <div><div className="panel-title"><Activity size={16} /> Recent activity</div><p>Latest events across the demo fleet</p></div>
+                <button type="button" className="text-button" onClick={() => navigateToSection("timeline")}>View timeline <ChevronRight size={14} /></button>
+              </div>
+              <div className="activity-list">
+                {recentActivity.map(item => (
+                  <button key={item.type} type="button" className="activity-item" onClick={() => {
+                    if (item.type === "Temperature alert") reviewTemperatureEvent();
+                    else navigateToSection("timeline");
+                  }}>
+                    <span className={`activity-dot ${item.tone}`} />
+                    <span><strong>{item.type}</strong><small>{item.detail}</small></span>
+                    <time>{item.time}</time>
+                  </button>
+                ))}
+              </div>
+            </article>
+            <article className="risk-callout panel">
+              <div className="risk-callout-icon"><AlertTriangle size={19} /></div>
+              <div><span>RULE-BASED DEMO SIGNAL</span><strong>4 checkpoints behind schedule</strong><p>CONT-2026-0197 is trending toward a high delay risk based on route variance and customs hold.</p></div>
+              <button type="button" onClick={() => chooseShipment("CONT-2026-0197")}>Review <ChevronRight size={14} /></button>
+            </article>
+          </div>
         </section>
 
         <section className="tracking-panel panel" id="tracking">
@@ -1150,6 +1303,48 @@ function App() {
           </article>
         </section>
 
+        <section className="shipment-table-panel panel" id="shipment-list">
+          <div className="panel-header">
+            <div><div className="panel-title"><Layers3 size={16} /> Shipment comparison</div><p>Compare route progress, ETA, sensor health, and verification status without leaving the dashboard.</p></div>
+            <span className="sample-badge">Sample fleet</span>
+          </div>
+          <div className="table-toolbar">
+            <div className="table-search"><Search size={14} /><input value={shipmentTableQuery} onChange={e => setShipmentTableQuery(e.target.value)} placeholder="Search container or route" aria-label="Search shipments" /></div>
+            <select value={shipmentStatusFilter} onChange={e => setShipmentStatusFilter(e.target.value)} aria-label="Filter shipment status">
+              <option>All</option><option>In Transit</option><option>Delayed</option><option>Delivered</option>
+            </select>
+            <select value={shipmentRiskFilter} onChange={e => setShipmentRiskFilter(e.target.value)} aria-label="Filter delay risk">
+              <option>All</option><option>Low</option><option>Medium</option><option>High</option>
+            </select>
+            <select value={shipmentSort} onChange={e => setShipmentSort(e.target.value)} aria-label="Sort shipments">
+              <option value="delay">Sort: delay</option><option value="eta">Sort: ETA</option><option value="progress">Sort: progress</option>
+            </select>
+            <button type="button" className="table-reset" onClick={() => { setShipmentTableQuery(""); setShipmentStatusFilter("All"); setShipmentRiskFilter("All"); setShipmentSort("delay"); }}><RotateCcw size={13} /> Clear</button>
+          </div>
+          <div className="shipment-table-wrap">
+            <table className="shipment-table">
+              <thead><tr><th>Container</th><th>Route</th><th>Status</th><th>Progress</th><th>ETA</th><th>Risk</th><th>Temperature</th><th>Integrity</th><th>Last update</th><th>Action</th></tr></thead>
+              <tbody>
+                {filteredShipmentRows.map(row => (
+                  <tr key={row.id}>
+                    <td><button type="button" className="table-link" onClick={() => shipments[row.id] ? chooseShipment(row.id) : setNotice(`${row.id} is a demo comparison record; detailed history is not loaded.`)}>{row.id}</button></td>
+                    <td>{row.route}</td>
+                    <td><span className={`table-status ${row.status.toLowerCase().replace(" ", "-")}`}><i />{row.status}</span></td>
+                    <td><div className="table-progress"><span><i style={{ width: `${row.progress}%` }} /></span><strong>{row.progress}%</strong></div></td>
+                    <td>{row.eta}</td>
+                    <td><span className={`risk-pill ${row.risk.toLowerCase()}`}>{row.risk}</span></td>
+                    <td className={row.temperature === "5.1°C" ? "temperature-warning" : ""}>{row.temperature}</td>
+                    <td><span className={`integrity-pill ${row.integrity.toLowerCase()}`}>{row.integrity}</span></td>
+                    <td>{row.lastUpdate}</td>
+                    <td><button type="button" className="table-action" onClick={() => { if (shipments[row.id]) { chooseShipment(row.id); navigateToSection("timeline"); } else setNotice(`${row.id} is a demo comparison record; detailed history is not loaded.`); }}>View</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {!filteredShipmentRows.length && <div className="table-empty">No shipments match the current filters.</div>}
+          </div>
+        </section>
+
         <section className="content-grid">
           <article className="panel timeline-panel" id="timeline">
             <div className="panel-header">
@@ -1184,10 +1379,17 @@ function App() {
                 <ChevronRight size={14} />
               </button>
             </div>
+            <div className="timeline-filters">
+              <div className="timeline-search"><Search size={13} /><input value={timelineQuery} onChange={e => setTimelineQuery(e.target.value)} placeholder="Search events, locations, payloads" aria-label="Search event timeline" /></div>
+              <select value={timelineSeverity} onChange={e => setTimelineSeverity(e.target.value)} aria-label="Filter event severity">
+                <option>All</option><option>Critical</option><option>Warning</option><option>Success</option><option>Info</option>
+              </select>
+              <span><FileText size={12} /> {filteredEvents.length} shown</span>
+            </div>
 
             {activeTab === "Timeline" ? (
               <div className="timeline-list">
-                {(showAllEvents ? events : events.slice(-3)).map(event => {
+                {(showAllEvents ? filteredEvents : filteredEvents.slice(-3)).map(event => {
                   const Icon = getEventIcon(event.type);
                   const index = events.findIndex(
                     item => item.version === event.version
@@ -1279,6 +1481,14 @@ function App() {
                 </div>
                 <strong>{currentEvent.title}</strong>
                 <p>{currentEvent.detail}</p>
+                <div className="inspector-actions">
+                  <button type="button" onClick={() => copyValue(getEventId(shipment.id, currentEvent), "Event ID")}><Clipboard size={12} /> Copy event ID</button>
+                  <button type="button" onClick={() => copyValue(currentEvent.hash, "Event hash")}><Fingerprint size={12} /> Copy hash</button>
+                </div>
+                <details className="payload-details">
+                  <summary>View event payload <ChevronDown size={13} /></summary>
+                  <pre>{JSON.stringify({ type: currentEvent.type, version: currentEvent.version, location: currentEvent.location, recordedAt: currentEvent.date, severity: currentEvent.tone === "red" ? "critical" : "normal" }, null, 2)}</pre>
+                </details>
                 <div className="event-detail-grid">
                   <div>
                     <span>Event ID</span>
