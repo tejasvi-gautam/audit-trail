@@ -696,6 +696,38 @@ function App() {
     }));
   }
 
+  function getSetupLanding() {
+    const preferenceLanding = {
+      "Shipment alerts": "alerts",
+      "Sensor insights": "sensors",
+      "Audit exports": "analytics",
+      "Daily operations digest": "overview"
+    };
+    const discoveryLanding = {
+      "Shipment tracking": "tracking",
+      "Event history": "timeline",
+      "Sensor monitoring": "sensors",
+      "Just exploring": "overview"
+    };
+    const selectedPreference = setupChoices.preferences.find(
+      preference => preferenceLanding[preference]
+    );
+
+    return selectedPreference
+      ? preferenceLanding[selectedPreference]
+      : discoveryLanding[setupChoices.discovery] || "overview";
+  }
+
+  function landOnSetupDestination(destination) {
+    if (destination === "alerts") {
+      setIsAlertsOpen(true);
+      setActiveSection("overview");
+      return;
+    }
+    setIsAlertsOpen(false);
+    navigateToSection(destination);
+  }
+
   function continueSetup() {
     const question = setupQuestions[setupStep];
     if (!question.multiSelect && !setupChoices[question.key]) {
@@ -714,6 +746,8 @@ function App() {
       ? ` Preferences enabled: ${setupChoices.preferences.join(", ")}.`
       : " No optional preferences were selected.";
     setNotice(`Workspace setup complete.${preferences}`);
+    const destination = getSetupLanding();
+    window.setTimeout(() => landOnSetupDestination(destination), 120);
   }
 
   function navigateToSection(sectionId) {
