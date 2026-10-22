@@ -4450,3 +4450,103 @@ kbd {
     gap: 11px;
   }
 }
+
+/* Final dark-theme control palette: visual-only overrides for native controls. */
+:root {
+  color-scheme: dark;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  font-family: 'DM Sans', sans-serif;
+}
+
+button,
+select,
+input {
+  color: #cfe1f2;
+}
+
+button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input,
+select,
+textarea {
+  border-color: #29415b;
+  background-color: #101925;
+  color: #dcecff;
+}
+
+input::placeholder {
+  color: #6f86a0;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus-visible {
+  outline: 2px solid #45d6ce;
+  outline-offset: 2px;
+}
+
+.table-search input,
+.timeline-search input,
+.search-form input,
+.command-search input {
+  background: transparent;
+  color: #e7f2ff;
+}
+
+.table-toolbar select,
+.timeline-filters select,
+.replay-speed select {
+  border-color: #29415b;
+  background: #111c2a;
+  color: #cfe1f2;
+  color-scheme: dark;
+}
+
+.table-toolbar select option,
+.timeline-filters select option,
+.replay-speed select option {
+  background: #101925;
+  color: #dcecff;
+}
+
+.table-reset,
+.table-action,
+.text-button {
+  background: transparent;
+  color: #79bff1;
+}
+
+.table-link {
+  background: transparent;
+  color: #9bd3ff;
+}
+
+.button-secondary,
+.button-watch,
+.icon-button,
+.setup-trigger,
+.command-trigger {
+  border-color: #29415b;
+  background: #111c2a;
+  color: #cfe1f2;
+}
+
+.button-secondary:hover,
+.button-watch:hover,
+.icon-button:hover,
+.setup-trigger:hover,
+.command-trigger:hover {
+  border-color: #3976a6;
+  background: #16283c;
+  color: #f1f8ff;
+}
