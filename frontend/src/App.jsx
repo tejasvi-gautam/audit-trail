@@ -8,7 +8,7 @@ import {
   Navigation, Route, SearchCheck,
   ShieldCheck, Ship, Sparkles, Target, Thermometer, Waves, X, Command,
   CheckCheck, CircleAlert, SlidersHorizontal, Clipboard, FileText,
-  RotateCcw
+  RotateCcw, Play, Pause, SkipBack, SkipForward, History
 } from "lucide-react";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, ReferenceLine,
@@ -387,6 +387,9 @@ function App() {
   const [shipmentStatusFilter, setShipmentStatusFilter] = useState("All");
   const [shipmentRiskFilter, setShipmentRiskFilter] = useState("All");
   const [shipmentSort, setShipmentSort] = useState("delay");
+  const [isReplayPlaying, setIsReplayPlaying] = useState(false);
+  const [replaySpeed, setReplaySpeed] = useState("1x");
+  const [replayMode, setReplayMode] = useState("historical");
 
   const shipment = shipments[activeId];
   const events = shipment.events;
@@ -513,6 +516,20 @@ function App() {
   useEffect(() => {
     if (isCommandOpen) commandInputRef.current?.focus();
   }, [isCommandOpen]);
+
+  useEffect(() => {
+    if (!isReplayPlaying) return undefined;
+    const interval = window.setInterval(() => {
+      setSelectedEvent(index => {
+        if (index >= events.length - 1) {
+          setIsReplayPlaying(false);
+          return index;
+        }
+        return index + 1;
+      });
+    }, replaySpeed === "2x" ? 650 : replaySpeed === "0.5x" ? 1800 : 1200);
+    return () => window.clearInterval(interval);
+  }, [isReplayPlaying, replaySpeed, events.length]);
 
   const originEventIndex = 0;
   const destinationEventIndex = events.length - 1;
@@ -712,6 +729,19 @@ function App() {
     setIntegrityCheck({ status: "pending", checkedAt: "" });
   }
 
+  function moveReplay(step) {
+    setIsReplayPlaying(false);
+    setSelectedEvent(index => Math.max(0, Math.min(events.length - 1, index + step)));
+    setIntegrityCheck({ status: "pending", checkedAt: "" });
+  }
+
+  function resetReplay() {
+    setIsReplayPlaying(false);
+    setSelectedEvent(0);
+    setReplayMode("historical");
+    setIntegrityCheck({ status: "pending", checkedAt: "" });
+  }
+
   function copyValue(value, label) {
     if (!navigator.clipboard) {
       setNotice(`Unable to copy ${label.toLowerCase()} in this browser.`);
@@ -832,6 +862,14 @@ function App() {
             type="button"
           >
             <MapPinned size={18} /> Live tracking
+          </button>
+          <button
+            className={activeSection === "replay" ? "nav-item active" : "nav-item"}
+            onClick={() => navigateToSection("replay")}
+            title="Audit Trail Replay Studio"
+            type="button"
+          >
+            <History size={18} /> Replay studio
           </button>
           <button
             className={activeSection === "sensors" ? "nav-item active" : "nav-item"}
@@ -1237,6 +1275,83 @@ function App() {
               <button className="tracking-action" type="button" onClick={() => navigateToSection("timeline")}>
                 <SearchCheck size={15} /> Inspect shipment events <ChevronRight size={15} />
               </button>
+            </aside>
+          </div>
+        </section>
+
+        <section className="replay-studio panel" id="replay">
+          <div className="replay-header">
+            <div>
+              <div className="eyebrow">FORENSIC WORKSPACE · DEMO EVENT DATA</div>
+              <h2><History size={20} /> Audit Trail Replay Studio</h2>
+              <p>Replay exactly what happened to <strong>{shipment.id}</strong>, pause at a suspicious event, and inspect how it changed the reconstructed state.</p>
+            </div>
+            <div className="replay-header-actions">
+              <span className="replay-status"><span /> {isReplayPlaying ? "REPLAYING" : "PAUSED"}</span>
+              <button type="button" className="button button-secondary" onClick={resetReplay}><RotateCcw size={14} /> Reset replay</button>
+            </div>
+          </div>
+
+          <div className="replay-toolbar">
+            <div className="replay-controls">
+              <button type="button" onClick={() => moveReplay(-1)} aria-label="Previous event"><SkipBack size={16} /></button>
+              <button type="button" className="replay-play" onClick={() => {
+                if (currentIndex >= events.length - 1) setSelectedEvent(0);
+                setIsReplayPlaying(value => !value);
+              }} aria-label={isReplayPlaying ? "Pause replay" : "Play replay"}>
+                {isReplayPlaying ? <Pause size={17} /> : <Play size={17} />}
+              </button>
+              <button type="button" onClick={() => moveReplay(1)} aria-label="Next event"><SkipForward size={16} /></button>
+            </div>
+            <div className="replay-position">
+              <span>REPLAYING EVENT</span>
+              <strong>{String(currentIndex + 1).padStart(2, "0")} <small>/ {String(events.length).padStart(2, "0")}</small></strong>
+            </div>
+            <label className="replay-speed">Speed
+              <select value={replaySpeed} onChange={e => setReplaySpeed(e.target.value)} aria-label="Replay speed">
+                <option>0.5x</option><option>1x</option><option>2x</option>
+              </select>
+            </label>
+            <div className="replay-mode" role="group" aria-label="Replay state mode">
+              <button type="button" className={replayMode === "historical" ? "active" : ""} onClick={() => setReplayMode("historical")}><History size={13} /> Historical state</button>
+              <button type="button" className={replayMode === "current" ? "active" : ""} onClick={() => setReplayMode("current")}><Target size={13} /> Current state</button>
+            </div>
+          </div>
+
+          <div className="replay-rail" aria-label="Replay event sequence">
+            <div className="replay-rail-line"><span style={{ width: `${events.length > 1 ? (currentIndex / (events.length - 1)) * 100 : 100}%` }} /></div>
+            {events.map((event, index) => {
+              const Icon = getEventIcon(event.type);
+              return (
+                <button key={event.hash} type="button" className={`replay-event ${index === currentIndex ? "active" : ""} ${index < currentIndex ? "visited" : ""}`} onClick={() => { setIsReplayPlaying(false); selectEvent(index); }} style={{ left: `${events.length > 1 ? (index / (events.length - 1)) * 100 : 0}%` }} aria-label={`Replay ${event.type}, event ${index + 1}`}>
+                  <span className={`replay-event-icon ${event.tone}`}><Icon size={13} /></span>
+                  <span className="replay-event-label"><strong>v{event.version}</strong><small>{event.type.replaceAll("_", " ")}</small></span>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="replay-grid">
+            <article className="replay-focus">
+              <div className="replay-focus-heading">
+                <div><span className={`replay-severity ${currentEvent.tone}`}>{currentEvent.tone === "red" ? "CRITICAL EVENT" : currentEvent.tone === "green" ? "SUCCESS EVENT" : "RECORDED EVENT"}</span><h3>{currentEvent.title}</h3><p>{currentEvent.date} · {currentEvent.location}</p></div>
+                <strong className="replay-version">VERSION <b>#{String(currentEvent.version).padStart(3, "0")}</b></strong>
+              </div>
+              <div className="replay-focus-body">
+                <div className="replay-state-card"><span>STATE AT THIS MOMENT</span><strong>{replayMode === "current" ? shipment.currentLocation : afterState.location}</strong><small>{replayMode === "current" ? shipment.status : afterState.status} · {replayMode === "current" ? "Latest reconstructed state" : "Historical reconstruction"}</small></div>
+                <div className="replay-state-card"><span>SENSOR READING</span><strong>{replayMode === "current" ? "4.3°C" : afterState.temperature}</strong><small>{afterState.status === "Temperature alert" ? "Above safe threshold" : "Within expected range"}</small></div>
+              </div>
+              <p className="replay-detail">{currentEvent.detail}</p>
+              <div className="replay-journey"><span>Origin</span><i /><strong>{currentEvent.location}</strong><i /><span>Destination</span></div>
+            </article>
+
+            <aside className="replay-integrity">
+              <div className="replay-side-heading"><div><span>EVENT INTEGRITY SNAPSHOT</span><h3><Fingerprint size={16} /> Chain evidence</h3></div><span className={`replay-check-state ${integrityCheck.status}`}>{integrityCheck.status === "verified" ? "VERIFIED" : "PENDING"}</span></div>
+              <div className="replay-hash-row"><span>Event hash</span><code>{currentEvent.hash}</code><button type="button" onClick={() => copyValue(currentEvent.hash, "Event hash")} aria-label="Copy event hash"><Clipboard size={13} /></button></div>
+              <div className="replay-hash-row"><span>Previous hash</span><code>{previousEvent?.hash || "GENESIS EVENT"}</code>{previousEvent && <button type="button" onClick={() => copyValue(previousEvent.hash, "Previous hash")} aria-label="Copy previous hash"><Clipboard size={13} /></button>}</div>
+              <div className="replay-chain-note"><LockKeyhole size={14} /><span>{previousEvent ? `v${currentEvent.version} follows v${previousEvent.version} in the sample event chain.` : "Genesis event · no previous hash exists."}</span></div>
+              <button type="button" className="replay-verify" onClick={runIntegrityCheck}><ShieldCheck size={14} /> {integrityCheck.status === "verified" ? "Verify again" : "Run integrity check"}</button>
+              <small className="replay-disclaimer">Demo UI result. Cryptographic verification and immutability must be provided by the backend.</small>
             </aside>
           </div>
         </section>
