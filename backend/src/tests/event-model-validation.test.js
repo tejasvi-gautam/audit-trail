@@ -56,3 +56,33 @@ test("timestamp is immutable", () => {
 
   assert.equal(timestampPath.options.immutable, true);
 });
+
+test("audit metadata defaults are applied", () => {
+  const event = new Event({
+    aggregateId: "metadata-test",
+    eventType: "CONTAINER_CREATED",
+    payload: {
+      containerNumber: "CNT-2001",
+    },
+    version: 1,
+  });
+
+  assert.equal(event.actor, "unknown");
+  assert.equal(event.source, "api");
+});
+
+test("audit metadata is trimmed", () => {
+  const event = new Event({
+    aggregateId: "metadata-test",
+    eventType: "CONTAINER_CREATED",
+    actor: "  umika  ",
+    source: "  logistics-service  ",
+    payload: {
+      containerNumber: "CNT-2002",
+    },
+    version: 1,
+  });
+
+  assert.equal(event.actor, "umika");
+  assert.equal(event.source, "logistics-service");
+});
