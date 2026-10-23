@@ -52,3 +52,25 @@ test("unknown route returns 404 JSON response", async () => {
   assert.equal(response.body.success, false);
   assert.equal(response.body.message, "Route not found");
 });
+
+test("oversized request payload returns 413", async () => {
+  const largeValue = "x".repeat(1_100_000);
+
+  const response = await request(app)
+    .post("/api/events")
+    .set("Content-Type", "application/json")
+    .send(
+      JSON.stringify({
+        aggregateId: "large-payload-test",
+        eventType: "CONTAINER_CREATED",
+        payload: {
+          data: largeValue,
+        },
+        version: 1,
+      })
+    );
+
+  assert.equal(response.status, 413);
+  assert.equal(response.body.success, false);
+  assert.equal(response.body.message, "Request payload is too large");
+});
