@@ -364,6 +364,11 @@ function App() {
     status: "pending",
     checkedAt: ""
   });
+  const [chainVerification, setChainVerification] = useState({
+    status: "pending",
+    failedIndex: null,
+    tampered: false
+  });
   const [showAllEvents, setShowAllEvents] = useState(true);
   const [notice, setNotice] = useState("");
   const [isWatching, setIsWatching] = useState(false);
@@ -390,6 +395,8 @@ function App() {
   const [isReplayPlaying, setIsReplayPlaying] = useState(false);
   const [replaySpeed, setReplaySpeed] = useState("1x");
   const [replayMode, setReplayMode] = useState("historical");
+  const [investigationNotes, setInvestigationNotes] = useState("");
+  const [resolutionStatus, setResolutionStatus] = useState("Investigating");
 
   const shipment = shipments[activeId];
   const events = shipment.events;
@@ -397,6 +404,14 @@ function App() {
   const currentIndex = Math.min(selectedEvent, events.length - 1);
   const currentEvent = events[currentIndex];
   const previousEvent = events[currentIndex - 1];
+  const chainRows = events.map((event, index) => ({
+    event,
+    index,
+    previousHash: index === 0 ? "GENESIS" : events[index - 1].hash,
+    currentHash: chainVerification.tampered && index === 2
+      ? "TAMPERED-9a31...44f0"
+      : event.hash
+  }));
   const beforeState = currentIndex === 0
     ? getShipmentState([], -1)
     : getShipmentState(events, currentIndex - 1);
@@ -413,6 +428,13 @@ function App() {
   const hasSpike = events.some(
     event => event.type === "TEMPERATURE_SPIKE"
   );
+  const activeDemoShipment = demoShipmentRows.find(row => row.id === activeId);
+  const incidentIsTemperature = hasSpike;
+  const incidentTitle = incidentIsTemperature ? "Temperature spike detected" : "Shipment arrival delayed";
+  const incidentDescription = incidentIsTemperature
+    ? "Sensor excursion recorded during transit and linked to a delivery delay."
+    : "Customs review is holding the shipment at the destination port.";
+  const incidentSeverity = incidentIsTemperature ? shipment.etaPrediction.risk : "High";
   const filteredAlerts = alerts.filter(alert =>
     alertFilter === "All" || alert.type === alertFilter
   );
@@ -621,6 +643,33 @@ function App() {
     URL.revokeObjectURL(url);
   }
 
+  function exportIncidentReport() {
+    const report = [
+      "AUDITTRAIL INCIDENT INVESTIGATION REPORT",
+      `Incident: ${shipment.id}`,
+      `Generated: ${new Date().toISOString()}`,
+      `Incident: ${incidentTitle}`,
+      `Severity: ${incidentSeverity}`,
+      `Status: ${resolutionStatus}`,
+      `Route: ${shipment.route}`,
+      `Current location: ${shipment.currentLocation}`,
+      `Actual progress: ${shipment.progress}%`,
+      `Planned progress: ${shipment.plannedProgress}%`,
+      `Current temperature: ${activeDemoShipment?.temperature || "4.3°C"}`,
+      incidentIsTemperature ? "Peak temperature: 9.4°C" : `Delay duration: ${activeDemoShipment?.delay || 8} hours`,
+      `Investigation notes: ${investigationNotes || "No notes added."}`,
+      "",
+      "EVENT EVIDENCE",
+      ...events.map(event => `${event.date} | ${event.type} | ${event.location} | ${event.detail} | ${event.hash}`)
+    ].join("\n");
+    const url = URL.createObjectURL(new Blob([report], { type: "text/plain;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${shipment.id}-incident-report.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
   function reviewTemperatureEvent() {
     const index = events.findIndex(
       event => event.type === "TEMPERATURE_SPIKE"
@@ -801,6 +850,23 @@ function App() {
     });
   }
 
+  function verifyEventChain(tampered = chainVerification.tampered) {
+    const failedIndex = tampered && events.length > 2 ? 2 : null;
+    setChainVerification({
+      status: failedIndex === null ? "verified" : "failed",
+      failedIndex,
+      tampered
+    });
+  }
+
+  function toggleTamperSimulation() {
+    setChainVerification(current => ({
+      status: "pending",
+      failedIndex: null,
+      tampered: !current.tampered
+    }));
+  }
+
   function selectMapEvent(index) {
     selectEvent(index);
     navigateToSection("timeline");
@@ -883,6 +949,14 @@ function App() {
           >
             <Activity size={18} /> Event timeline
             <span className="nav-count">{events.length}</span>
+          </button>
+          <button
+            className={activeSection === "incident" ? "nav-item active" : "nav-item"}
+            onClick={() => navigateToSection("incident")}
+            title="Incident investigation workspace"
+            type="button"
+          >
+            <CircleAlert size={18} /> Incident investigation
           </button>
           <button
             className={activeSection === "containers" ? "nav-item active" : "nav-item"}
@@ -1196,6 +1270,96 @@ function App() {
                     <time>{item.time}</time>
                   </button>
                 ))}
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section className="incident-workspace panel" id="incident" aria-label="Incident investigation workspace">
+          <div className="incident-header">
+            <div>
+              <div className="eyebrow">FORENSIC OPERATIONS · INCIDENT WORKSPACE</div>
+              <h2>Investigate an active incident</h2>
+              <p>Assemble the route, sensor, and ledger evidence needed to resolve a shipment exception.</p>
+            </div>
+            <div className="incident-header-actions">
+              <span className={`incident-status ${resolutionStatus.toLowerCase().replace(" ", "-")}`}><span /> {resolutionStatus}</span>
+              <button type="button" className="button button-secondary" onClick={exportIncidentReport}><Download size={14} /> Export incident report</button>
+            </div>
+          </div>
+
+          <div className="incident-selector">
+            <span>INVESTIGATING SHIPMENT</span>
+            {Object.values(shipments).map(item => (
+              <button key={item.id} type="button" className={activeId === item.id ? "active" : ""} onClick={() => chooseShipment(item.id)}>
+                <span className="status-dot" />
+                <strong>{item.id}</strong>
+                <small>{item.route}</small>
+              </button>
+            ))}
+          </div>
+
+          <div className="incident-summary">
+            <div className="incident-summary-title">
+              <div className="incident-severity-icon">{incidentIsTemperature ? <Thermometer size={20} /> : <AlertTriangle size={20} />}</div>
+              <div><span className="command-card-kicker">PRIMARY INCIDENT</span><h3>{incidentTitle}</h3><p>{incidentDescription}</p></div>
+              <span className="severity-pill critical">{incidentSeverity.toUpperCase()}</span>
+            </div>
+            <div className="incident-facts">
+              <div><span>Incident ID</span><strong>INC-{shipment.id.slice(-4)}-TEMP</strong></div>
+              <div><span>Opened</span><strong>Oct 14, 03:18 UTC</strong></div>
+              <div><span>{incidentIsTemperature ? "Peak reading" : "Delay duration"}</span><strong className="incident-danger">{incidentIsTemperature ? "9.4°C" : `${activeDemoShipment?.delay || 8} hours`}</strong></div>
+              <div><span>{incidentIsTemperature ? "Safe threshold" : "Hold reason"}</span><strong>{incidentIsTemperature ? "8.0°C" : "Customs review"}</strong></div>
+            </div>
+          </div>
+
+          <div className="incident-main-grid">
+            <article className="incident-card route-evidence">
+              <div className="incident-card-heading"><div><span className="command-card-kicker">SHIPMENT CONTEXT</span><h3>Route and sensor readings</h3></div><MapPinned size={17} /></div>
+              <div className="incident-route-line"><span className="route-node origin">CNSHA</span><i /><span className="route-current"><Navigation size={13} /> 68%</span><i /><span className="route-node destination">NLRTM</span></div>
+              <div className="incident-route-labels"><span>{shipment.originPort}</span><span>{shipment.destination}</span></div>
+              <div className="incident-sensor-grid">
+                <div><span>Current temperature</span><strong>{activeDemoShipment?.temperature || "4.3°C"}</strong><small className="sensor-good">Within range</small></div>
+                <div><span>{incidentIsTemperature ? "Peak temperature" : "Shipment status"}</span><strong className={incidentIsTemperature ? "incident-danger" : ""}>{incidentIsTemperature ? "9.4°C" : shipment.status}</strong><small className={incidentIsTemperature ? "sensor-bad" : "sensor-warn"}>{incidentIsTemperature ? "+1.4°C over limit" : "Customs hold active"}</small></div>
+                <div><span>Route progress</span><strong>{shipment.progress}%</strong><small className="sensor-warn">{Math.abs(progressDelta)} points behind plan</small></div>
+                <div><span>Revised ETA</span><strong>Oct 23 · 02:00</strong><small className="sensor-warn">Medium risk</small></div>
+              </div>
+            </article>
+
+            <article className="incident-card evidence-card">
+              <div className="incident-card-heading"><div><span className="command-card-kicker">CHAIN OF EVIDENCE</span><h3>Chronological event evidence</h3></div><Fingerprint size={17} /></div>
+              <div className="incident-evidence-list">
+                {events.map((event, index) => (
+                  <button key={event.hash} type="button" className={event.type === "TEMPERATURE_SPIKE" ? "incident-evidence active" : "incident-evidence"} onClick={() => { selectEvent(index); navigateToSection("timeline"); }}>
+                    <span className={`evidence-marker ${event.tone}`}><span /></span>
+                    <span><strong>{event.title}</strong><small>{event.date} · {event.location}</small></span>
+                    {event.type === "TEMPERATURE_SPIKE" && <span className="evidence-flag">TRIGGER</span>}
+                  </button>
+                ))}
+              </div>
+            </article>
+          </div>
+
+          <div className="incident-lower-grid">
+            <article className="incident-card expected-card">
+              <div className="incident-card-heading"><div><span className="command-card-kicker">TIMELINE ANALYSIS</span><h3>Expected versus actual</h3></div><GitBranch size={17} /></div>
+              <div className="timeline-comparison">
+                <div className="timeline-comparison-head"><span>Milestone</span><span>Expected</span><span>Actual</span></div>
+                <div><strong>{incidentIsTemperature ? "Temperature" : "Port release"}</strong><span>{incidentIsTemperature ? "≤ 8.0°C" : "Customs cleared"}</span><span className="comparison-bad">{incidentIsTemperature ? "9.4°C peak" : "Review pending"}</span></div>
+                <div><strong>Route progress</strong><span>72% complete</span><span className="comparison-bad">{shipment.progress}% complete</span></div>
+                <div><strong>Arrival estimate</strong><span>Oct 22 · 14:00</span><span className="comparison-bad">Oct 23 · 02:00</span></div>
+                <div><strong>Custody status</strong><span>Continuous chain</span><span className="comparison-bad">Integrity review</span></div>
+              </div>
+            </article>
+
+            <article className="incident-card notes-card">
+              <div className="incident-card-heading"><div><span className="command-card-kicker">CASE MANAGEMENT</span><h3>Investigation notes</h3></div><Clipboard size={17} /></div>
+              <textarea value={investigationNotes} onChange={event => setInvestigationNotes(event.target.value)} placeholder="Record findings, owner, and next steps..." aria-label="Investigation notes" />
+              <div className="resolution-row">
+                <label htmlFor="resolution-status">Resolution status</label>
+                <select id="resolution-status" value={resolutionStatus} onChange={event => setResolutionStatus(event.target.value)}>
+                  <option>Investigating</option><option>Mitigated</option><option>Resolved</option><option>Closed</option>
+                </select>
               </div>
             </article>
           </div>
@@ -2066,6 +2230,49 @@ function App() {
               <div>
                 <span>PREVIOUS EVENT HASH</span>
                 <code>{previousEvent?.hash || "GENESIS · No previous event"}</code>
+              </div>
+            </div>
+
+            <div className="chain-explorer">
+              <div className="chain-explorer-header">
+                <div>
+                  <span>EVENT CHAIN VERIFICATION EXPLORER</span>
+                  <strong>Hash links from genesis to latest</strong>
+                </div>
+                <span className={`chain-state ${chainVerification.status}`}>
+                  <span />
+                  {chainVerification.status === "verified" ? "CHAIN VERIFIED" : chainVerification.status === "failed" ? "VERIFICATION FAILED" : "NOT VERIFIED"}
+                </span>
+              </div>
+              <div className="chain-list">
+                {chainRows.map(({ event, index, previousHash, currentHash }) => {
+                  const isFailure = chainVerification.failedIndex === index;
+                  return (
+                    <div key={event.hash} className={`chain-row ${isFailure ? "failed" : ""}`}>
+                      <div className={`chain-node ${event.tone}`}><span>{event.version}</span></div>
+                      <div className="chain-event-copy">
+                        <strong>{event.title}</strong>
+                        <small>{getEventId(shipment.id, event)}</small>
+                      </div>
+                      <div className="chain-hash-pair">
+                        <div><span>PREVIOUS HASH</span><code>{previousHash}</code></div>
+                        <ArrowUpRight size={13} />
+                        <div><span>CURRENT HASH</span><code>{currentHash}</code></div>
+                      </div>
+                      {isFailure && <span className="chain-failure-label"><CircleAlert size={12} /> Failure here</span>}
+                    </div>
+                  );
+                })}
+              </div>
+              {chainVerification.status === "failed" && (
+                <div className="chain-failure-banner">
+                  <CircleAlert size={15} />
+                  <span>Verification stopped at <strong>v{chainVerification.failedIndex + 1}</strong>. The current hash no longer matches the link expected by the next event.</span>
+                </div>
+              )}
+              <div className="chain-actions">
+                <button type="button" onClick={() => verifyEventChain()}><ShieldCheck size={14} /> Verify full chain</button>
+                <button type="button" className={chainVerification.tampered ? "active" : ""} onClick={toggleTamperSimulation}><AlertTriangle size={14} /> {chainVerification.tampered ? "Restore original chain" : "Simulate tampered event"}</button>
               </div>
             </div>
 
