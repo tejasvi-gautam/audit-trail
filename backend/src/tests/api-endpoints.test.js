@@ -33,3 +33,14 @@ test("GET events returns 400 for empty aggregate ID", async () => {
   assert.equal(response.body.success, false);
   assert.equal(response.body.message, "Aggregate ID is required");
 });
+
+test("invalid JSON payload returns 400", async () => {
+  const response = await request(app)
+    .post("/api/events")
+    .set("Content-Type", "application/json")
+    .send('{"aggregateId":');
+
+  assert.equal(response.status, 400);
+  assert.equal(response.body.success, false);
+  assert.equal(response.body.message, "Invalid JSON payload");
+});
