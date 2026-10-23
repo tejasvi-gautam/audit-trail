@@ -20,9 +20,16 @@ app.get("/health", (_req, res) => {
 app.use("/api/events", eventRoutes);
 
 app.use((error, _req, res, _next) => {
+  if (error?.type === "entity.parse.failed") {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid JSON payload",
+    });
+  }
+
   console.error(error);
 
-  res.status(500).json({
+  return res.status(500).json({
     success: false,
     message: "Internal server error",
   });
