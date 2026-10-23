@@ -44,3 +44,11 @@ test("invalid JSON payload returns 400", async () => {
   assert.equal(response.body.success, false);
   assert.equal(response.body.message, "Invalid JSON payload");
 });
+
+test("unknown route returns 404 JSON response", async () => {
+  const response = await request(app).get("/unknown-route");
+
+  assert.equal(response.status, 404);
+  assert.equal(response.body.success, false);
+  assert.equal(response.body.message, "Route not found");
+});
