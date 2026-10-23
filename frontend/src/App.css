@@ -4550,3 +4550,487 @@ button:focus-visible {
   background: #16283c;
   color: #f1f8ff;
 }
+
+/* Logistics control tower */
+.command-center {
+  margin: 15px 0 11px;
+  padding: 20px;
+  border: 1px solid #213b53;
+  border-radius: 9px;
+  background:
+    radial-gradient(circle at 100% 0, #1b3d4c 0, transparent 34%),
+    linear-gradient(145deg, #0d1d2d, #0b1623);
+  box-shadow: 0 12px 30px #07111d33;
+}
+
+.command-center-header,
+.command-card-header,
+.command-metric-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.command-center-header {
+  margin-bottom: 17px;
+}
+
+.command-center-header .eyebrow {
+  margin-bottom: 6px;
+  color: #61d8cc;
+}
+
+.command-center-header h2 {
+  margin: 0;
+  color: #e9f4ff;
+  font: 800 21px Manrope, sans-serif;
+  letter-spacing: -.7px;
+}
+
+.command-center-header p {
+  margin: 6px 0 0;
+  color: #7f96ad;
+  font-size: 10px;
+}
+
+.simulated-badge,
+.simulated-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #79a4be;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .7px;
+  white-space: nowrap;
+}
+
+.simulated-dot,
+.simulated-inline span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #d7a05d;
+  box-shadow: 0 0 0 3px #d7a05d1f;
+}
+
+.command-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.command-metric {
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid #23425b;
+  border-radius: 7px;
+  background: #102438bd;
+}
+
+.command-metric-top {
+  align-items: center;
+}
+
+.command-metric-top > span {
+  color: #8ca4b9;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+}
+
+.command-metric-icon {
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border-radius: 7px;
+  background: #163952;
+  color: #64d9cb;
+}
+
+.command-metric.warning .command-metric-icon {
+  background: #48351f;
+  color: #efb25e;
+}
+
+.command-metric.critical .command-metric-icon {
+  background: #482b2d;
+  color: #ff8c7b;
+}
+
+.command-metric > strong {
+  display: block;
+  margin-top: 10px;
+  color: #f1f7ff;
+  font: 800 25px Manrope, sans-serif;
+}
+
+.command-metric > strong span {
+  margin-left: 2px;
+  color: #7895ad;
+  font: 600 10px "DM Sans", sans-serif;
+}
+
+.command-metric small {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 6px;
+  color: #65d9c7;
+  font-size: 8px;
+}
+
+.metric-note {
+  color: #839ab0 !important;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+}
+
+.status-dot.green { background: #49d5a4; }
+.status-dot.amber { background: #eab15d; }
+.status-dot.red { background: #ff786d; }
+
+.health-bar {
+  height: 4px;
+  margin-top: 9px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: #20384c;
+}
+
+.health-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #38bba9, #69e0c7);
+}
+
+.command-center-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin-top: 10px;
+}
+
+.command-card {
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid #203b53;
+  border-radius: 7px;
+  background: #0d1d2db8;
+}
+
+.command-card-kicker {
+  display: block;
+  margin-bottom: 5px;
+  color: #698ba6;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.command-card h3 {
+  margin: 0;
+  color: #deecfa;
+  font: 700 12px Manrope, sans-serif;
+}
+
+.command-card-header > svg {
+  color: #5db9df;
+}
+
+.command-card-count {
+  display: grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.warning-count {
+  background: #4a3520;
+  color: #ffc36b;
+}
+
+.attention-list,
+.integrity-queue,
+.command-activity-list {
+  margin-top: 12px;
+}
+
+.attention-item,
+.integrity-queue button,
+.command-activity-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 9px;
+  padding: 9px 0;
+  border: 0;
+  border-top: 1px solid #1d3449;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.attention-item:hover,
+.integrity-queue button:hover,
+.command-activity-item:hover {
+  background: #142b40;
+}
+
+.attention-icon,
+.temperature-alert-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: #442b2c;
+  color: #ff8878;
+}
+
+.attention-copy,
+.command-activity-item > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 3px;
+}
+
+.attention-copy strong,
+.command-activity-item strong {
+  overflow: hidden;
+  color: #cfe2f3;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attention-copy small,
+.command-activity-item small {
+  overflow: hidden;
+  color: #7690a8;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.attention-delay {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #f2b55f;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.command-card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #72c4ed;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.command-card-link:hover {
+  color: #b2e4ff;
+}
+
+.critical-label,
+.simulated-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #ff8c7b;
+  font-size: 8px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.critical-label span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ff786d;
+  box-shadow: 0 0 0 3px #ff786d20;
+}
+
+.temperature-alert-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 13px;
+  padding: 10px;
+  border: 1px solid #4c3033;
+  border-radius: 7px;
+  background: #241d27;
+}
+
+.temperature-alert-main > div:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 3px;
+}
+
+.temperature-alert-main strong {
+  color: #ffb477;
+  font: 800 19px Manrope, sans-serif;
+}
+
+.temperature-alert-main span:not(.severity-pill) {
+  overflow: hidden;
+  color: #9b8b9a;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.severity-pill {
+  padding: 4px 5px;
+  border-radius: 4px;
+  font-size: 7px !important;
+  font-weight: 800;
+  letter-spacing: .5px;
+  white-space: nowrap;
+}
+
+.severity-pill.critical {
+  background: #522d31;
+  color: #ff9b8e !important;
+}
+
+.temperature-threshold {
+  display: flex;
+  justify-content: space-between;
+  padding: 11px 2px 0;
+  color: #8098ae;
+  font-size: 8px;
+}
+
+.temperature-threshold strong {
+  color: #dceafb;
+  font-size: 9px;
+}
+
+.integrity-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 13px;
+}
+
+.integrity-summary div {
+  padding: 8px;
+  border-radius: 6px;
+  background: #12283a;
+}
+
+.integrity-summary strong,
+.integrity-summary span {
+  display: block;
+}
+
+.integrity-summary strong {
+  color: #e5f0fc;
+  font: 700 16px Manrope, sans-serif;
+}
+
+.integrity-summary span {
+  margin-top: 2px;
+  color: #7e98ad;
+  font-size: 8px;
+}
+
+.integrity-queue {
+  display: grid;
+  gap: 0;
+}
+
+.integrity-queue button {
+  padding: 8px 0;
+}
+
+.integrity-queue button > span:nth-child(2) {
+  flex: 1;
+  color: #a9c0d3;
+  font-size: 9px;
+}
+
+.integrity-queue button strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #d88d72;
+  font-size: 8px;
+}
+
+.integrity-queue button:last-child strong {
+  color: #e3b25d;
+}
+
+.activity-card {
+  grid-column: 1 / -1;
+}
+
+.activity-card .simulated-inline {
+  color: #d8a35f;
+}
+
+.activity-card .simulated-inline span {
+  background: #d8a35f;
+}
+
+.command-activity-item {
+  align-items: flex-start;
+}
+
+.command-activity-item time {
+  color: #688198;
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+@media (max-width: 850px) {
+  .command-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .command-center {
+    padding: 15px;
+  }
+
+  .command-center-header {
+    flex-direction: column;
+  }
+
+  .command-metrics,
+  .command-center-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .activity-card {
+    grid-column: auto;
+  }
+}

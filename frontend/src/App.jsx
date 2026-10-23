@@ -442,6 +442,9 @@ function App() {
     { status: "Booked", shipments: 24 }
   ];
   const totalShipments = shipmentStatusTotals.reduce((total, item) => total + item.shipments, 0);
+  const delayedShipments = demoShipmentRows.filter(row => row.delay > 0);
+  const integrityFailures = demoShipmentRows.filter(row => row.integrity === "Failed");
+  const pendingIntegrityChecks = demoShipmentRows.filter(row => row.integrity === "Pending");
 
   const commandActions = [
     {
@@ -859,10 +862,10 @@ function App() {
           <button
             className={activeSection === "overview" ? "nav-item active" : "nav-item"}
             onClick={() => navigateToSection("overview")}
-            title="Overview"
+            title="Fleet command center"
             type="button"
           >
-            <Layers3 size={18} /> Overview
+            <Layers3 size={18} /> Command center
           </button>
           <button
             className={activeSection === "analytics" ? "nav-item active" : "nav-item"}
@@ -952,7 +955,7 @@ function App() {
         <header className="topbar">
           <div className="breadcrumbs">
             Supply chain <ChevronRight size={14} />
-            <strong>Shipment audit workspace</strong>
+            <strong>Logistics control tower</strong>
           </div>
 
           <div className="topbar-right">
@@ -1054,12 +1057,11 @@ function App() {
         <section className="page-heading" id="overview">
           <div>
             <div className="eyebrow">
-              SHIPMENT AUDIT WORKSPACE
+              LOGISTICS CONTROL TOWER
             </div>
-            <h1>Understand every shipment event</h1>
+            <h1>Command center for the demo fleet</h1>
             <p>
-              Search for a container, select an event, and review the shipment
-              state, sensor readings, and audit details together.
+              Monitor fleet health, delivery performance, conditions, and ledger integrity from one operational view.
             </p>
           </div>
 
@@ -1090,6 +1092,114 @@ function App() {
             <button onClick={() => setIsWatching(false)} aria-label="Stop watching shipment">Stop watching</button>
           </div>
         )}
+
+        <section className="command-center" aria-label="Fleet command center">
+          <div className="command-center-header">
+            <div>
+              <div className="eyebrow">LOGISTICS CONTROL TOWER</div>
+              <h2>Fleet command center</h2>
+              <p>One view of the signals that need your attention across the demo fleet.</p>
+            </div>
+            <span className="simulated-badge"><span className="simulated-dot" /> SIMULATED DATA · UPDATED JUST NOW</span>
+          </div>
+
+          <div className="command-metrics">
+            <article className="command-metric health">
+              <div className="command-metric-top"><span>Fleet health score</span><div className="command-metric-icon"><ShieldCheck size={16} /></div></div>
+              <strong>86<span>/100</span></strong>
+              <div className="health-bar"><span style={{ width: "86%" }} /></div>
+              <small><ArrowUpRight size={12} /> 4.2% vs last week</small>
+            </article>
+            <article className="command-metric">
+              <div className="command-metric-top"><span>On-time delivery</span><div className="command-metric-icon"><Clock3 size={16} /></div></div>
+              <strong>83.2<span>%</span></strong>
+              <small className="metric-note"><span className="status-dot green" /> 164 of 197 shipments on time</small>
+            </article>
+            <article className="command-metric warning">
+              <div className="command-metric-top"><span>Delayed shipments</span><div className="command-metric-icon"><AlertTriangle size={16} /></div></div>
+              <strong>9</strong>
+              <small className="metric-note"><span className="status-dot amber" /> 4 require attention now</small>
+            </article>
+            <article className="command-metric critical">
+              <div className="command-metric-top"><span>Critical temperature alerts</span><div className="command-metric-icon"><Thermometer size={16} /></div></div>
+              <strong>3</strong>
+              <small className="metric-note"><span className="status-dot red" /> 1 active excursion</small>
+            </article>
+          </div>
+
+          <div className="command-center-grid">
+            <article className="command-card attention-card">
+              <div className="command-card-header">
+                <div><span className="command-card-kicker">ATTENTION QUEUE</span><h3>Delayed shipments</h3></div>
+                <span className="command-card-count warning-count">9</span>
+              </div>
+              <div className="attention-list">
+                {delayedShipments.map(row => (
+                  <button key={row.id} type="button" className="attention-item" onClick={() => chooseShipment(row.id)}>
+                    <span className="attention-icon"><AlertTriangle size={14} /></span>
+                    <span className="attention-copy"><strong>{row.id}</strong><small>{row.route}</small></span>
+                    <span className="attention-delay">+{row.delay}h <ChevronRight size={14} /></span>
+                  </button>
+                ))}
+              </div>
+              <button type="button" className="command-card-link" onClick={() => navigateToSection("containers")}>View all shipment risks <ArrowUpRight size={13} /></button>
+            </article>
+
+            <article className="command-card temperature-card">
+              <div className="command-card-header">
+                <div><span className="command-card-kicker">CONDITION MONITORING</span><h3>Temperature alerts</h3></div>
+                <span className="critical-label"><span /> 1 active</span>
+              </div>
+              <div className="temperature-alert-main">
+                <div className="temperature-alert-icon"><Thermometer size={20} /></div>
+                <div><strong>9.4°C</strong><span>CONT-2026-0842 · North Atlantic Ocean</span></div>
+                <span className="severity-pill critical">CRITICAL</span>
+              </div>
+              <div className="temperature-threshold"><span>Safety threshold</span><strong>8.0°C</strong></div>
+              <button type="button" className="command-card-link" onClick={() => { reviewTemperatureEvent(); }}>Inspect sensor event <ArrowUpRight size={13} /></button>
+            </article>
+
+            <article className="command-card integrity-card">
+              <div className="command-card-header">
+                <div><span className="command-card-kicker">LEDGER INTEGRITY</span><h3>Checks requiring review</h3></div>
+                <Fingerprint size={18} />
+              </div>
+              <div className="integrity-summary">
+                <div><strong>2</strong><span>Failed</span></div>
+                <div><strong>5</strong><span>Pending</span></div>
+                <div><strong>41</strong><span>Verified</span></div>
+              </div>
+              <div className="integrity-queue">
+                {integrityFailures.map(row => (
+                  <button key={row.id} type="button" onClick={() => chooseShipment(row.id)}><span className="status-dot red" /><span>{row.id}</span><strong>Failed <ChevronRight size={13} /></strong></button>
+                ))}
+                {pendingIntegrityChecks.map(row => (
+                  <button key={row.id} type="button" onClick={() => chooseShipment(row.id)}><span className="status-dot amber" /><span>{row.id}</span><strong>Pending <ChevronRight size={13} /></strong></button>
+                ))}
+              </div>
+              <button type="button" className="command-card-link" onClick={() => navigateToSection("integrity")}>Open integrity audit <ArrowUpRight size={13} /></button>
+            </article>
+
+            <article className="command-card activity-card">
+              <div className="command-card-header">
+                <div><span className="command-card-kicker">ACTIVITY STREAM</span><h3>What just happened</h3></div>
+                <span className="simulated-inline"><span /> SIMULATED</span>
+              </div>
+              <div className="command-activity-list">
+                {recentActivity.map(item => (
+                  <button key={item.type} type="button" className="command-activity-item" onClick={() => {
+                    if (item.type === "Temperature alert") reviewTemperatureEvent();
+                    else navigateToSection("timeline");
+                  }}>
+                    <span className={`activity-dot ${item.tone}`} />
+                    <span><strong>{item.type}</strong><small>{item.detail}</small></span>
+                    <time>{item.time}</time>
+                  </button>
+                ))}
+              </div>
+            </article>
+          </div>
+        </section>
 
         <section className="search-panel" id="containers">
           <div className="search-intro">
