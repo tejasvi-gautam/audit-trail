@@ -16,6 +16,20 @@ const eventSchema = new mongoose.Schema(
       uppercase: true,
     },
 
+    actor: {
+      type: String,
+      trim: true,
+      default: "unknown",
+      immutable: true,
+    },
+
+    source: {
+      type: String,
+      trim: true,
+      default: "api",
+      immutable: true,
+    },
+
     payload: {
       type: mongoose.Schema.Types.Mixed,
       required: true,

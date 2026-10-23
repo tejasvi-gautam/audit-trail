@@ -3,12 +3,27 @@ import { appendEvent } from "../repositories/event.repository.js";
 
 export const appendEventCommandSchema = z.object({
   aggregateId: z.string().trim().min(1),
+
   eventType: z
     .string()
     .trim()
     .min(1)
     .transform((value) => value.toUpperCase()),
+
+  actor: z
+    .string()
+    .trim()
+    .min(1)
+    .default("unknown"),
+
+  source: z
+    .string()
+    .trim()
+    .min(1)
+    .default("api"),
+
   payload: z.record(z.unknown()),
+
   version: z.number().int().positive(),
 });
 
