@@ -19,6 +19,13 @@ app.get("/health", (_req, res) => {
 
 app.use("/api/events", eventRoutes);
 
+app.use((_req, res) => {
+  return res.status(404).json({
+    success: false,
+    message: "Route not found",
+  });
+});
+
 app.use((error, _req, res, _next) => {
   if (error?.type === "entity.parse.failed") {
     return res.status(400).json({
