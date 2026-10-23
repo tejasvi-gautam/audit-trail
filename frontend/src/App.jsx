@@ -386,6 +386,8 @@ function App() {
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [alertFilter, setAlertFilter] = useState("All");
   const [readAlertIds, setReadAlertIds] = useState([]);
+  const [alertStatuses, setAlertStatuses] = useState({});
+  const [alertView, setAlertView] = useState("unresolved");
   const [timelineQuery, setTimelineQuery] = useState("");
   const [timelineSeverity, setTimelineSeverity] = useState("All");
   const [shipmentTableQuery, setShipmentTableQuery] = useState("");
@@ -435,7 +437,9 @@ function App() {
     ? "Sensor excursion recorded during transit and linked to a delivery delay."
     : "Customs review is holding the shipment at the destination port.";
   const incidentSeverity = incidentIsTemperature ? shipment.etaPrediction.risk : "High";
-  const filteredAlerts = alerts.filter(alert =>
+  const unresolvedAlerts = alerts.filter(alert => alertStatuses[alert.id] !== "resolved");
+  const alertSource = alertView === "unresolved" ? unresolvedAlerts : alerts;
+  const filteredAlerts = alertSource.filter(alert =>
     alertFilter === "All" || alert.type === alertFilter
   );
   const filteredEvents = events.filter(event => {
@@ -876,6 +880,11 @@ function App() {
     setReadAlertIds(current => current.includes(alertId) ? current : [...current, alertId]);
   }
 
+  function updateAlertStatus(alertId, status) {
+    setAlertStatuses(current => ({ ...current, [alertId]: status }));
+    markAlertRead(alertId);
+  }
+
   function openAlert(alert) {
     markAlertRead(alert.id);
     setIsAlertsOpen(false);
@@ -1062,11 +1071,19 @@ function App() {
                 <section className="alerts-panel" aria-label="Notification center">
                   <div className="alerts-header">
                     <div>
-                      <strong>Notification center</strong>
-                      <span>{unreadAlertCount ? `${unreadAlertCount} unread across all shipments` : "All caught up"}</span>
+                      <strong>Actionable alerts</strong>
+                      <span>{unresolvedAlerts.length} unresolved · {alerts.length - unresolvedAlerts.length} resolved</span>
                     </div>
                     <button type="button" onClick={markAllAlertsRead} disabled={!unreadAlertCount}>
                       <CheckCheck size={14} /> Mark all read
+                    </button>
+                  </div>
+                  <div className="alerts-view-tabs" role="group" aria-label="Alert view">
+                    <button type="button" className={alertView === "unresolved" ? "active" : ""} onClick={() => setAlertView("unresolved")}>
+                      Unresolved <span>{unresolvedAlerts.length}</span>
+                    </button>
+                    <button type="button" className={alertView === "history" ? "active" : ""} onClick={() => setAlertView("history")}>
+                      Alert history <span>{alerts.length}</span>
                     </button>
                   </div>
                   <div className="alerts-filters" role="group" aria-label="Filter alerts">
@@ -1084,25 +1101,31 @@ function App() {
                   </div>
                   <div className="alerts-list">
                     {filteredAlerts.length ? filteredAlerts.map(alert => (
-                      <button
+                      <article
                         key={alert.id}
-                        type="button"
                         className={readAlertIds.includes(alert.id) ? "alert-item read" : "alert-item"}
-                        onClick={() => openAlert(alert)}
                       >
-                        <span className={`alert-severity ${alert.severity}`}>
+                        <button type="button" className="alert-main" onClick={() => openAlert(alert)}>
+                          <span className={`alert-severity ${alert.severity}`}>
                           {alert.severity === "critical" ? <CircleAlert size={15} /> : <Bell size={14} />}
-                        </span>
-                        <span className="alert-copy">
-                          <span className="alert-title-row">
-                            <strong>{alert.title}</strong>
-                            <em>{alert.severity}</em>
                           </span>
-                          <small>{alert.detail}</small>
-                          <span className="alert-meta">{alert.type} · {alert.timestamp}</span>
-                        </span>
-                        {!readAlertIds.includes(alert.id) && <span className="unread-dot" />}
-                      </button>
+                          <span className="alert-copy">
+                            <span className="alert-title-row">
+                              <strong>{alert.title}</strong>
+                              <em>{alert.severity}</em>
+                            </span>
+                            <small>{alert.detail}</small>
+                            <span className="alert-meta">{alert.type} · {alert.timestamp}</span>
+                          </span>
+                          {!readAlertIds.includes(alert.id) && <span className="unread-dot" />}
+                        </button>
+                        <div className="alert-workflow">
+                          <span className={`alert-status ${alertStatuses[alert.id] || "new"}`}>{alertStatuses[alert.id] || "New"}</span>
+                          <button type="button" onClick={() => updateAlertStatus(alert.id, "acknowledged")} disabled={alertStatuses[alert.id] === "acknowledged"}>Acknowledge</button>
+                          <button type="button" onClick={() => { updateAlertStatus(alert.id, "investigating"); openAlert(alert); }}>Investigate</button>
+                          <button type="button" onClick={() => updateAlertStatus(alert.id, "resolved")} disabled={alertStatuses[alert.id] === "resolved"}>Resolve</button>
+                        </div>
+                      </article>
                     )) : (
                       <div className="alerts-empty">No alerts match this filter.</div>
                     )}

@@ -4179,6 +4179,42 @@ h1 {
   scrollbar-width: none;
 }
 
+.alerts-view-tabs {
+  display: flex;
+  gap: 5px;
+  padding: 0 13px 10px;
+}
+
+.alerts-view-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 6px 3px;
+  background: transparent;
+  color: #718ba3;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.alerts-view-tabs button.active {
+  border-bottom-color: #45d6ce;
+  color: #bcefe8;
+}
+
+.alerts-view-tabs button span {
+  display: inline-grid;
+  place-items: center;
+  min-width: 15px;
+  height: 15px;
+  margin: 0;
+  border-radius: 8px;
+  background: #1a3449;
+  color: #8faac0;
+  font-size: 7px;
+}
+
 .alerts-filters::-webkit-scrollbar {
   display: none;
 }
@@ -4209,16 +4245,8 @@ h1 {
 }
 
 .alert-item {
-  display: flex;
-  align-items: flex-start;
   width: 100%;
-  gap: 9px;
-  padding: 12px 14px;
-  border: 0;
   border-bottom: 1px solid #1c3043;
-  background: transparent;
-  color: inherit;
-  text-align: left;
 }
 
 .alert-item:hover {
@@ -4227,6 +4255,70 @@ h1 {
 
 .alert-item.read {
   opacity: .58;
+}
+
+.alert-main {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  gap: 9px;
+  padding: 12px 14px 8px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
+.alert-main:hover {
+  background: #142b42;
+}
+
+.alert-workflow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 14px 10px 50px;
+}
+
+.alert-workflow button {
+  border: 1px solid #29445d;
+  border-radius: 4px;
+  padding: 4px 6px;
+  background: #122438;
+  color: #8fb0c8;
+  font-size: 7px;
+  font-weight: 700;
+}
+
+.alert-workflow button:hover {
+  border-color: #4bbeb5;
+  color: #c5fff6;
+}
+
+.alert-workflow button:disabled {
+  cursor: default;
+  opacity: .45;
+}
+
+.alert-status {
+  margin-right: auto;
+  color: #e8b35d;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+}
+
+.alert-status.acknowledged {
+  color: #79c9ed;
+}
+
+.alert-status.investigating {
+  color: #c9a2ff;
+}
+
+.alert-status.resolved {
+  color: #65d7bd;
 }
 
 .alert-severity {
