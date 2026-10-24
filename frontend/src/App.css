@@ -2627,6 +2627,235 @@ body { background: var(--ink-950); }
   display: none;
 }
 
+/* Enterprise UI polish */
+:root {
+  --focus-ring: rgba(75, 190, 226, .48);
+  --surface-hover: rgba(31, 55, 76, .72);
+  --space-section: 16px;
+}
+
+html {
+  scroll-padding-top: 84px;
+}
+
+button,
+input,
+select,
+textarea {
+  min-height: 32px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.app-shell {
+  isolation: isolate;
+}
+
+.panel,
+.summary-card,
+.command-card,
+.incident-card,
+.replay-focus,
+.replay-integrity {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, .16);
+}
+
+.panel-header,
+.command-card-header,
+.incident-card-heading,
+.replay-side-heading {
+  min-height: 58px;
+}
+
+.panel-title svg,
+.command-card-header > svg,
+.incident-card-heading > svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
+.status-pill,
+.severity-pill,
+.risk-pill,
+.integrity-pill,
+.alert-status,
+.incident-status,
+.detail-status,
+.replay-check-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 22px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .55px;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.severity-pill.critical,
+.alert-status.new,
+.risk-pill.high,
+.integrity-pill.failed,
+.detail-status.red {
+  color: #ffb0ad;
+  background: rgba(159, 48, 59, .25);
+  border-color: rgba(255, 132, 133, .2);
+}
+
+.severity-pill.warning,
+.alert-status.acknowledged,
+.risk-pill.medium,
+.integrity-pill.pending {
+  color: #ffd18a;
+  background: rgba(161, 101, 28, .22);
+  border-color: rgba(255, 193, 109, .2);
+}
+
+.severity-pill.success,
+.alert-status.resolved,
+.risk-pill.low,
+.integrity-pill.verified,
+.detail-status.green {
+  color: #8ce7ca;
+  background: rgba(25, 121, 103, .22);
+  border-color: rgba(106, 225, 199, .2);
+}
+
+.shipment-table-wrap {
+  max-height: 430px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: #2e5875 transparent;
+}
+
+.shipment-table {
+  border-spacing: 0;
+}
+
+.shipment-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #101d2b;
+  box-shadow: 0 1px 0 rgba(92, 137, 168, .3);
+}
+
+.shipment-table tbody tr {
+  transition: background .15s ease;
+}
+
+.shipment-table tbody tr:hover {
+  background: rgba(55, 103, 137, .16);
+}
+
+.table-empty,
+.command-empty,
+.empty-state {
+  display: grid;
+  place-items: center;
+  gap: 7px;
+  min-height: 112px;
+  padding: 22px;
+  color: #8ea3bb;
+  font-size: 11px;
+  text-align: center;
+}
+
+.table-empty::before,
+.empty-state::before {
+  content: "—";
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px dashed rgba(107, 157, 190, .45);
+  border-radius: 50%;
+  color: #5f93b5;
+  font-size: 16px;
+}
+
+.toast-region {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 20;
+  width: min(390px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 10px 11px 10px 14px;
+  border: 1px solid rgba(106, 225, 199, .3);
+  border-radius: 10px;
+  background: #132b32;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, .3);
+  color: #dff8f1;
+  font-size: 11px;
+  line-height: 1.45;
+  pointer-events: auto;
+  animation: toast-in .22s ease-out both;
+}
+
+.toast > svg {
+  flex: 0 0 16px;
+  color: #6ae1c7;
+}
+
+.toast span {
+  flex: 1;
+}
+
+.toast button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #8ca9ad;
+}
+
+.toast button:hover {
+  background: rgba(255, 255, 255, .08);
+  color: white;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
 @media (max-width: 600px) {
   .heading-actions { width: 100%; justify-content: stretch; }
   .heading-actions .button { flex: 1; }
@@ -3050,6 +3279,16 @@ h1 {
 
   .text-button {
     font-size: 9px;
+  }
+
+  .toast-region {
+    right: 16px;
+    bottom: 16px;
+    width: calc(100vw - 32px);
+  }
+
+  .shipment-table-wrap {
+    max-height: 360px;
   }
 }
 

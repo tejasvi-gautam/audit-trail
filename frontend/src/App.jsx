@@ -560,6 +560,12 @@ function App() {
     return () => window.clearInterval(interval);
   }, [isReplayPlaying, replaySpeed, events.length]);
 
+  useEffect(() => {
+    if (!notice) return undefined;
+    const timeout = window.setTimeout(() => setNotice(""), 4800);
+    return () => window.clearTimeout(timeout);
+  }, [notice]);
+
   const originEventIndex = 0;
   const destinationEventIndex = events.length - 1;
   const positionEventIndex = events.findIndex(event => event.type === "VESSEL_POSITION_UPDATED");
@@ -1424,7 +1430,7 @@ function App() {
             </button>
           </div>
 
-          {notice && <div className="search-notice">{notice}</div>}
+
         </section>
 
         <section className="operations-overview" aria-label="Shipment operations overview">
@@ -2341,6 +2347,18 @@ function App() {
           <span>Frontend demo · Sample data</span>
         </footer>
       </main>
+
+      {notice && (
+        <div className="toast-region" aria-live="polite" aria-atomic="true">
+          <div className="toast" role="status">
+            <CheckCircle2 size={16} />
+            <span>{notice}</span>
+            <button type="button" onClick={() => setNotice("")} aria-label="Dismiss notification">
+              <X size={15} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {isCommandOpen && (
         <div
