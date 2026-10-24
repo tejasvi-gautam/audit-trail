@@ -387,6 +387,7 @@ function App() {
   const [alertFilter, setAlertFilter] = useState("All");
   const [readAlertIds, setReadAlertIds] = useState([]);
   const [alertStatuses, setAlertStatuses] = useState({});
+  const [alertActionTimes, setAlertActionTimes] = useState({});
   const [alertView, setAlertView] = useState("unresolved");
   const [timelineQuery, setTimelineQuery] = useState("");
   const [timelineSeverity, setTimelineSeverity] = useState("All");
@@ -438,6 +439,8 @@ function App() {
     : "Customs review is holding the shipment at the destination port.";
   const incidentSeverity = incidentIsTemperature ? shipment.etaPrediction.risk : "High";
   const unresolvedAlerts = alerts.filter(alert => alertStatuses[alert.id] !== "resolved");
+  const unresolvedCriticalCount = unresolvedAlerts.filter(alert => alert.severity === "critical").length;
+  const unresolvedWarningCount = unresolvedAlerts.filter(alert => alert.severity === "warning").length;
   const alertSource = alertView === "unresolved" ? unresolvedAlerts : alerts;
   const filteredAlerts = alertSource.filter(alert =>
     alertFilter === "All" || alert.type === alertFilter
@@ -888,7 +891,15 @@ function App() {
 
   function updateAlertStatus(alertId, status) {
     setAlertStatuses(current => ({ ...current, [alertId]: status }));
+    setAlertActionTimes(current => ({
+      ...current,
+      [alertId]: new Date().toLocaleString([], {
+        dateStyle: "medium",
+        timeStyle: "short"
+      })
+    }));
     markAlertRead(alertId);
+    setNotice(`Alert ${status === "acknowledged" ? "acknowledged" : status}.`);
   }
 
   function openAlert(alert) {
@@ -1092,6 +1103,11 @@ function App() {
                       Alert history <span>{alerts.length}</span>
                     </button>
                   </div>
+                  <div className="alert-summary" aria-label="Unresolved alert summary">
+                    <span><i className="critical" /> {unresolvedCriticalCount} critical</span>
+                    <span><i className="warning" /> {unresolvedWarningCount} warning</span>
+                    <span className="alert-summary-total">{unresolvedAlerts.length} open</span>
+                  </div>
                   <div className="alerts-filters" role="group" aria-label="Filter alerts">
                     {["All", "Delay", "Temperature", "Integrity"].map(filter => (
                       <button
@@ -1126,14 +1142,25 @@ function App() {
                           {!readAlertIds.includes(alert.id) && <span className="unread-dot" />}
                         </button>
                         <div className="alert-workflow">
-                          <span className={`alert-status ${alertStatuses[alert.id] || "new"}`}>{alertStatuses[alert.id] || "New"}</span>
-                          <button type="button" onClick={() => updateAlertStatus(alert.id, "acknowledged")} disabled={alertStatuses[alert.id] === "acknowledged"}>Acknowledge</button>
-                          <button type="button" onClick={() => { updateAlertStatus(alert.id, "investigating"); openAlert(alert); }}>Investigate</button>
+                          <span className={`alert-status ${alertStatuses[alert.id] || "new"}`}>
+                            {alertStatuses[alert.id] || "New"}
+                          </span>
+                          {alertActionTimes[alert.id] && (
+                            <time dateTime={alertActionTimes[alert.id]} title="Last workflow update">
+                              Updated {alertActionTimes[alert.id]}
+                            </time>
+                          )}
+                          <button type="button" onClick={() => updateAlertStatus(alert.id, "acknowledged")} disabled={alertStatuses[alert.id] === "acknowledged" || alertStatuses[alert.id] === "resolved"}>Acknowledge</button>
+                          <button type="button" onClick={() => { updateAlertStatus(alert.id, "investigating"); openAlert(alert); }} disabled={alertStatuses[alert.id] === "resolved"}>Investigate</button>
                           <button type="button" onClick={() => updateAlertStatus(alert.id, "resolved")} disabled={alertStatuses[alert.id] === "resolved"}>Resolve</button>
                         </div>
                       </article>
                     )) : (
-                      <div className="alerts-empty">No alerts match this filter.</div>
+                      <div className="alerts-empty">
+                        <CheckCircle2 size={18} />
+                        <strong>{alertView === "unresolved" ? "All clear" : "No alert history matches"}</strong>
+                        <span>{alertView === "unresolved" ? "There are no unresolved alerts in this view." : "Try changing the alert type filter."}</span>
+                      </div>
                     )}
                   </div>
                 </section>
