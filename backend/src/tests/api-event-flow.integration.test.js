@@ -58,3 +58,23 @@ test("API appends and retrieves aggregate events in order", async () => {
   assert.equal(response.body.data[0].eventType, "CONTAINER_CREATED");
   assert.equal(response.body.data[1].eventType, "LOADED_ON_SHIP");
 });
+
+test("API stores actor and source metadata", async () => {
+  const response = await request(app)
+    .post("/api/events")
+    .send({
+      aggregateId: `metadata-api-${Date.now()}`,
+      eventType: "CONTAINER_CREATED",
+      actor: "umika",
+      source: "integration-test",
+      payload: {
+        containerNumber: "CNT-METADATA-001",
+      },
+      version: 1,
+    });
+
+  assert.equal(response.status, 201);
+  assert.equal(response.body.success, true);
+  assert.equal(response.body.data.actor, "umika");
+  assert.equal(response.body.data.source, "integration-test");
+});
