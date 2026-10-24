@@ -398,6 +398,10 @@ function App() {
   const [isReplayPlaying, setIsReplayPlaying] = useState(false);
   const [replaySpeed, setReplaySpeed] = useState("1x");
   const [replayMode, setReplayMode] = useState("historical");
+  const [comparisonStart, setComparisonStart] = useState(0);
+  const [comparisonEnd, setComparisonEnd] = useState(2);
+  const [bookmarkName, setBookmarkName] = useState("");
+  const [replayBookmarks, setReplayBookmarks] = useState([]);
   const [investigationNotes, setInvestigationNotes] = useState("");
   const [resolutionStatus, setResolutionStatus] = useState("Investigating");
 
@@ -428,6 +432,17 @@ function App() {
   const changedStateComparisons = stateComparisons.filter(
     comparison => comparison.before !== comparison.after
   );
+  const comparisonFromIndex = Math.min(comparisonStart, comparisonEnd);
+  const comparisonToIndex = Math.max(comparisonStart, comparisonEnd);
+  const comparisonFromState = getShipmentState(events, comparisonFromIndex);
+  const comparisonToState = getShipmentState(events, comparisonToIndex);
+  const comparisonRows = [
+    { label: "Location", before: comparisonFromState.location, after: comparisonToState.location },
+    { label: "Temperature", before: comparisonFromState.temperature, after: comparisonToState.temperature },
+    { label: "Shipment status", before: comparisonFromState.status, after: comparisonToState.status },
+    { label: "Custody", before: comparisonFromState.custody, after: comparisonToState.custody }
+  ];
+  const comparisonChanges = comparisonRows.filter(row => row.before !== row.after);
   const hasSpike = events.some(
     event => event.type === "TEMPERATURE_SPIKE"
   );
@@ -580,6 +595,8 @@ function App() {
     if (shipments[id]) {
       setActiveId(id);
       setSelectedEvent(0);
+      setComparisonStart(0);
+      setComparisonEnd(Math.min(2, shipments[id].events.length - 1));
       setIntegrityCheck({ status: "pending", checkedAt: "" });
       setShowAllEvents(true);
       setIsWatching(false);
@@ -595,6 +612,8 @@ function App() {
     setQuery(id);
     setActiveId(id);
     setSelectedEvent(0);
+    setComparisonStart(0);
+    setComparisonEnd(Math.min(2, shipments[id].events.length - 1));
     setIntegrityCheck({ status: "pending", checkedAt: "" });
     setShowAllEvents(true);
     setIsWatching(false);
@@ -837,8 +856,44 @@ function App() {
   function resetReplay() {
     setIsReplayPlaying(false);
     setSelectedEvent(0);
+    setComparisonStart(0);
+    setComparisonEnd(Math.min(2, events.length - 1));
     setReplayMode("historical");
     setIntegrityCheck({ status: "pending", checkedAt: "" });
+  }
+
+  function exportEvidenceSnapshot() {
+    const evidence = {
+      shipmentId: shipment.id,
+      selectedEvent: {
+        id: getEventId(shipment.id, currentEvent),
+        title: currentEvent.title,
+        type: currentEvent.type,
+        timestamp: currentEvent.date,
+        hash: currentEvent.hash,
+        precedingHash: previousEvent?.hash || "GENESIS EVENT"
+      },
+      reconstructedState: afterState,
+      impact: changedStateComparisons,
+      generatedAt: new Date().toISOString()
+    };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(evidence, null, 2)], { type: "application/json" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${shipment.id}-evidence-v${currentEvent.version}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setNotice("Evidence snapshot downloaded.");
+  }
+
+  function saveReplayBookmark() {
+    const name = bookmarkName.trim() || `${currentEvent.title} · v${currentEvent.version}`;
+    setReplayBookmarks(current => [
+      ...current.filter(bookmark => bookmark.name !== name),
+      { name, index: currentIndex, eventId: getEventId(shipment.id, currentEvent) }
+    ]);
+    setBookmarkName("");
+    setNotice(`Bookmark saved: ${name}`);
   }
 
   function copyValue(value, label) {
@@ -1680,6 +1735,10 @@ function App() {
               <button type="button" className={replayMode === "historical" ? "active" : ""} onClick={() => setReplayMode("historical")}><History size={13} /> Historical state</button>
               <button type="button" className={replayMode === "current" ? "active" : ""} onClick={() => setReplayMode("current")}><Target size={13} /> Current state</button>
             </div>
+            <div className="replay-bookmark-form">
+              <input value={bookmarkName} onChange={event => setBookmarkName(event.target.value)} placeholder="Bookmark name" aria-label="Bookmark name" />
+              <button type="button" onClick={saveReplayBookmark}><Target size={13} /> Save point</button>
+            </div>
           </div>
 
           <div className="replay-rail" aria-label="Replay event sequence">
@@ -1695,6 +1754,47 @@ function App() {
             })}
           </div>
 
+          <div className="replay-comparison">
+            <div className="replay-section-heading">
+              <div><span>STATE DIFF</span><h3>Before and after comparison</h3></div>
+              <span className="comparison-count">{comparisonChanges.length} changed</span>
+            </div>
+            <div className="replay-comparison-controls">
+              <label>Before
+                <select value={comparisonStart} onChange={event => setComparisonStart(Number(event.target.value))}>
+                  {events.map((event, index) => <option key={`before-${event.hash}`} value={index}>v{event.version} · {event.title}</option>)}
+                </select>
+              </label>
+              <ArrowUpRight size={14} />
+              <label>After
+                <select value={comparisonEnd} onChange={event => setComparisonEnd(Number(event.target.value))}>
+                  {events.map((event, index) => <option key={`after-${event.hash}`} value={index}>v{event.version} · {event.title}</option>)}
+                </select>
+              </label>
+            </div>
+            <div className="replay-diff-table">
+              <div className="replay-diff-head"><span>Field</span><span>Before · v{comparisonFromIndex + 1}</span><span>After · v{comparisonToIndex + 1}</span></div>
+              {comparisonRows.map(row => (
+                <div key={row.label} className={row.before !== row.after ? "replay-diff-row changed" : "replay-diff-row"}>
+                  <strong>{row.label}</strong><span>{row.before}</span><span>{row.after}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {replayBookmarks.length > 0 && (
+            <div className="replay-bookmarks">
+              <div className="replay-section-heading"><div><span>INVESTIGATION BOOKMARKS</span><h3>Saved replay points</h3></div><History size={15} /></div>
+              <div className="replay-bookmark-list">
+                {replayBookmarks.map(bookmark => (
+                  <button key={`${bookmark.name}-${bookmark.eventId}`} type="button" onClick={() => { setIsReplayPlaying(false); selectEvent(bookmark.index); }}>
+                    <Target size={13} /><span><strong>{bookmark.name}</strong><small>{bookmark.eventId}</small></span><ChevronRight size={13} />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="replay-grid">
             <article className="replay-focus">
               <div className="replay-focus-heading">
@@ -1706,6 +1806,12 @@ function App() {
                 <div className="replay-state-card"><span>SENSOR READING</span><strong>{replayMode === "current" ? "4.3°C" : afterState.temperature}</strong><small>{afterState.status === "Temperature alert" ? "Above safe threshold" : "Within expected range"}</small></div>
               </div>
               <p className="replay-detail">{currentEvent.detail}</p>
+              <div className="replay-impact">
+                <div className="replay-section-heading"><div><span>EVENT IMPACT</span><h3>{changedStateComparisons.length} fields changed after this event</h3></div><Activity size={15} /></div>
+                {changedStateComparisons.length ? changedStateComparisons.map(change => (
+                  <div className="replay-impact-row" key={change.label}><strong>{change.label}</strong><span>{change.before}</span><ArrowUpRight size={12} /><span>{change.after}</span></div>
+                )) : <p>No reconstructed state fields changed at this point.</p>}
+              </div>
               <div className="replay-journey"><span>Origin</span><i /><strong>{currentEvent.location}</strong><i /><span>Destination</span></div>
             </article>
 
@@ -1715,6 +1821,7 @@ function App() {
               <div className="replay-hash-row"><span>Previous hash</span><code>{previousEvent?.hash || "GENESIS EVENT"}</code>{previousEvent && <button type="button" onClick={() => copyValue(previousEvent.hash, "Previous hash")} aria-label="Copy previous hash"><Clipboard size={13} /></button>}</div>
               <div className="replay-chain-note"><LockKeyhole size={14} /><span>{previousEvent ? `v${currentEvent.version} follows v${previousEvent.version} in the sample event chain.` : "Genesis event · no previous hash exists."}</span></div>
               <button type="button" className="replay-verify" onClick={runIntegrityCheck}><ShieldCheck size={14} /> {integrityCheck.status === "verified" ? "Verify again" : "Run integrity check"}</button>
+              <button type="button" className="replay-verify replay-evidence-button" onClick={exportEvidenceSnapshot}><Download size={14} /> Export evidence snapshot</button>
               <small className="replay-disclaimer">Demo UI result. Cryptographic verification and immutability must be provided by the backend.</small>
             </aside>
           </div>
