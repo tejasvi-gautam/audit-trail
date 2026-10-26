@@ -18,8 +18,17 @@ export const appendEvent = async ({
   });
 };
 
-export const getEventsByAggregateId = async (aggregateId) => {
-  return Event.find({ aggregateId })
+export const getEventsByAggregateId = async (
+  aggregateId,
+  eventType
+) => {
+  const filter = { aggregateId };
+
+  if (eventType) {
+    filter.eventType = eventType;
+  }
+
+  return Event.find(filter)
     .sort({ version: 1 })
     .lean();
 };

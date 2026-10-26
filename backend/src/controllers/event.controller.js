@@ -36,7 +36,8 @@ export const appendEventController = async (req, res, next) => {
 export const getAggregateEventsController = async (req, res, next) => {
   try {
     const events = await executeGetAggregateEventsQuery(
-      req.params.aggregateId
+      req.params.aggregateId,
+      req.query?.eventType
     );
 
     return res.status(200).json({
@@ -47,7 +48,9 @@ export const getAggregateEventsController = async (req, res, next) => {
     if (error instanceof ZodError) {
       return res.status(400).json({
         success: false,
-        message: "Aggregate ID is required",
+        message: req.params.aggregateId?.trim()
+          ? "Invalid event query"
+          : "Aggregate ID is required",
       });
     }
 
