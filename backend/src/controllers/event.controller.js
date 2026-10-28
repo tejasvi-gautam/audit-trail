@@ -1,6 +1,9 @@
 import { ZodError } from "zod";
 import { executeAppendEventCommand } from "../commands/append-event.command.js";
-import { executeGetAggregateEventsQuery } from "../queries/get-aggregate-events.query.js";
+import {
+  executeGetAggregateEventsQuery,
+  executeVerifyAggregateIntegrityQuery,
+} from "../queries/get-aggregate-events.query.js";
 
 export const appendEventController = async (req, res, next) => {
   try {
@@ -51,6 +54,32 @@ export const getAggregateEventsController = async (req, res, next) => {
         message: req.params.aggregateId?.trim()
           ? "Invalid event query"
           : "Aggregate ID is required",
+      });
+    }
+
+    return next(error);
+  }
+};
+
+export const verifyAggregateIntegrityController = async (
+  req,
+  res,
+  next
+) => {
+  try {
+    const result = await executeVerifyAggregateIntegrityQuery(
+      req.params.aggregateId
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return res.status(400).json({
+        success: false,
+        message: "Aggregate ID is required",
       });
     }
 

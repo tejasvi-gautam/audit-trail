@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { getEventsByAggregateId } from "../repositories/event.repository.js";
+import {
+  getEventsByAggregateId,
+  verifyAggregateIntegrity,
+} from "../repositories/event.repository.js";
 
 export const aggregateIdSchema = z
   .string()
@@ -28,4 +31,13 @@ export const executeGetAggregateEventsQuery = async (
     validatedAggregateId,
     validatedEventType
   );
+};
+
+export const executeVerifyAggregateIntegrityQuery = async (
+  aggregateId
+) => {
+  const validatedAggregateId =
+    aggregateIdSchema.parse(aggregateId);
+
+  return verifyAggregateIntegrity(validatedAggregateId);
 };
