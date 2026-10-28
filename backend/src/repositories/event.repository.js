@@ -8,6 +8,14 @@ export const appendEvent = async ({
   payload,
   version,
 }) => {
+  const previousEvent = await Event.findOne({
+    aggregateId,
+    version: { $lt: version },
+  })
+    .sort({ version: -1 })
+    .select("eventHash")
+    .lean();
+
   return Event.create({
     aggregateId,
     eventType,
@@ -15,13 +23,11 @@ export const appendEvent = async ({
     source,
     payload,
     version,
+    previousHash: previousEvent?.eventHash ?? "GENESIS",
   });
 };
 
-export const getEventsByAggregateId = async (
-  aggregateId,
-  eventType
-) => {
+export const getEventsByAggregateId = async (aggregateId, eventType) => {
   const filter = { aggregateId };
 
   if (eventType) {
