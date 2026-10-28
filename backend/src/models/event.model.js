@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import mongoose from "mongoose";
 
 const eventSchema = new mongoose.Schema(
@@ -30,6 +31,17 @@ const eventSchema = new mongoose.Schema(
       immutable: true,
     },
 
+    previousHash: {
+      type: String,
+      default: "GENESIS",
+      immutable: true,
+    },
+
+    eventHash: {
+      type: String,
+      immutable: true,
+    },
+
     payload: {
       type: mongoose.Schema.Types.Mixed,
       required: true,
@@ -53,10 +65,27 @@ const eventSchema = new mongoose.Schema(
   }
 );
 
-eventSchema.index(
-  { aggregateId: 1, version: 1 },
-  { unique: true }
-);
+eventSchema.index({ aggregateId: 1, version: 1 }, { unique: true });
+
+eventSchema.pre("validate", function () {
+  if (this.isNew && !this.eventHash) {
+    const content = [
+      this.aggregateId,
+      this.eventType,
+      this.version,
+      this.actor,
+      this.source,
+      this.previousHash,
+      this.timestamp?.toISOString(),
+      JSON.stringify(this.payload),
+    ].join("|");
+
+    this.eventHash = crypto
+      .createHash("sha256")
+      .update(content)
+      .digest("hex");
+  }
+});
 
 const immutableOperations = [
   "updateOne",
