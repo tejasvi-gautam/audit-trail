@@ -9,3 +9,8 @@ export const connectDatabase = async () => {
   await mongoose.connect(env.mongoUri);
   console.log("MongoDB connected successfully");
 };
+
+export const disconnectDatabase = async () => {
+  await mongoose.disconnect();
+  console.log("MongoDB disconnected successfully");
+};

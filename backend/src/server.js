@@ -1,6 +1,9 @@
 import app from "./app.js";
 import { env } from "./config/env.js";
-import { connectDatabase } from "./db/connect.js";
+import {
+  connectDatabase,
+  disconnectDatabase,
+} from "./db/connect.js";
 
 let server;
 
@@ -19,20 +22,39 @@ const startServer = async () => {
   }
 };
 
-const shutdown = (signal) => {
+const shutdown = async (signal) => {
   console.log(`${signal} received. Closing server...`);
 
-  if (!server) {
-    process.exit(0);
-  }
+  try {
+    if (server) {
+      await new Promise((resolve, reject) => {
+        server.close((error) => {
+          if (error) {
+            reject(error);
+            return;
+          }
 
-  server.close(() => {
-    console.log("Server closed.");
+          resolve();
+        });
+      });
+    }
+
+    await disconnectDatabase();
+
+    console.log("Server and database closed.");
     process.exit(0);
-  });
+  } catch (error) {
+    console.error("Shutdown failed:", error.message);
+    process.exit(1);
+  }
 };
 
-process.on("SIGINT", () => shutdown("SIGINT"));
-process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => {
+  void shutdown("SIGINT");
+});
+
+process.on("SIGTERM", () => {
+  void shutdown("SIGTERM");
+});
 
 startServer();
