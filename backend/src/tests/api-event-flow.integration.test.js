@@ -78,3 +78,37 @@ test("API stores actor and source metadata", async () => {
   assert.equal(response.body.data.actor, "umika");
   assert.equal(response.body.data.source, "integration-test");
 });
+test("API verifies aggregate event integrity", async () => {
+  const integrityAggregateId = `integrity-api-${Date.now()}`;
+
+  await request(app)
+    .post("/api/events")
+    .send({
+      aggregateId: integrityAggregateId,
+      eventType: "CONTAINER_CREATED",
+      payload: {
+        containerNumber: "CNT-INTEGRITY-001",
+      },
+      version: 1,
+    });
+
+  await request(app)
+    .post("/api/events")
+    .send({
+      aggregateId: integrityAggregateId,
+      eventType: "LOADED_ON_SHIP",
+      payload: {
+        shipName: "MV-Atlas",
+      },
+      version: 2,
+    });
+
+  const response = await request(app).get(
+    `/api/events/${integrityAggregateId}/integrity`
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.success, true);
+  assert.equal(response.body.data.valid, true);
+  assert.equal(response.body.data.checkedEvents, 2);
+});
