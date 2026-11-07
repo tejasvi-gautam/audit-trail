@@ -74,3 +74,13 @@ test("oversized request payload returns 413", async () => {
   assert.equal(response.body.success, false);
   assert.equal(response.body.message, "Request payload is too large");
 });
+test("readiness endpoint reports database status", async () => {
+  const response = await request(app).get("/health/ready");
+
+  assert.ok([200, 503].includes(response.status));
+  assert.equal(response.body.service, "audit-trail-backend");
+  assert.ok(
+    ["connected", "disconnected"].includes(response.body.database)
+  );
+  assert.equal(response.body.success, response.status === 200);
+});
