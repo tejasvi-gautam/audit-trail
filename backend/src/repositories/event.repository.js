@@ -43,7 +43,11 @@ export const appendEvent = async ({
   });
 };
 
-export const getEventsByAggregateId = async (aggregateId, eventType) => {
+export const getEventsByAggregateId = async (
+  aggregateId,
+  eventType,
+  limit = 50
+) => {
   const filter = { aggregateId };
 
   if (eventType) {
@@ -51,8 +55,9 @@ export const getEventsByAggregateId = async (aggregateId, eventType) => {
   }
 
   return Event.find(filter)
-    .sort({ version: 1 })
-    .lean();
+  .sort({ version: 1 })
+  .limit(limit)
+  .lean();
 };
 
 export const verifyAggregateIntegrity = async (aggregateId) => {
