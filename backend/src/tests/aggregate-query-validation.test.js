@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   aggregateIdSchema,
   eventLimitSchema,
+  eventTypeSchema,
 } from "../queries/get-aggregate-events.query.js";
 
 test("aggregate ID whitespace is trimmed", () => {
@@ -33,4 +34,15 @@ test("event limit rejects values above 100", () => {
 
 test("event limit rejects zero", () => {
   assert.throws(() => eventLimitSchema.parse("0"));
+});
+
+test("event type is trimmed and converted to uppercase", () => {
+  assert.equal(
+    eventTypeSchema.parse(" loaded_on_ship "),
+    "LOADED_ON_SHIP"
+  );
+});
+
+test("empty event type is rejected", () => {
+  assert.throws(() => eventTypeSchema.parse(" "));
 });
