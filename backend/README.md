@@ -150,3 +150,59 @@ Run these commands from the `backend` folder.
 
 ```bash
 npm test
+
+## API Reference
+
+### Health Check
+
+GET /health
+
+GET /health/ready
+
+### Append Event
+
+POST /api/events
+
+Example body:
+
+{
+  "aggregateId": "container-001",
+  "eventType": "CONTAINER_CREATED",
+  "actor": "operations-team",
+  "source": "api",
+  "payload": {
+    "containerNumber": "CNT-1001",
+    "origin": "Mumbai",
+    "destination": "Dubai"
+  },
+  "version": 1
+}
+
+### Read Aggregate Events
+
+GET /api/events/container-001
+
+Optional filters:
+
+GET /api/events/container-001?eventType=LOADED_ON_SHIP&limit=10
+
+Events are returned in ascending version order. The limit can be between 1 and 100.
+
+### Verify Event Integrity
+
+GET /api/events/container-001/integrity
+
+This verifies the event hash chain and reports whether the aggregate history is valid.
+
+### Request IDs
+
+Every response contains an x-request-id header. This ID helps trace a request during debugging and error investigation.
+
+### Error Responses
+
+- Invalid event data: 400
+- Duplicate event version: 409
+- Invalid JSON: 400
+- Unknown route: 404
+- Oversized request body: 413
+- Database not ready: 503
