@@ -40,7 +40,8 @@ export const getAggregateEventsController = async (req, res, next) => {
   try {
     const events = await executeGetAggregateEventsQuery(
       req.params.aggregateId,
-      req.query?.eventType
+      req.query?.eventType,
+      req.query?.limit
     );
 
     return res.status(200).json({

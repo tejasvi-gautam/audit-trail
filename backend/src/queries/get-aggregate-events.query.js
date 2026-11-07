@@ -15,9 +15,17 @@ export const eventTypeSchema = z
   .min(1)
   .transform((value) => value.toUpperCase());
 
+export const eventLimitSchema = z.coerce
+  .number()
+  .int()
+  .min(1)
+  .max(100)
+  .default(50);
+
 export const executeGetAggregateEventsQuery = async (
   aggregateId,
-  eventType
+  eventType,
+  limit
 ) => {
   const validatedAggregateId =
     aggregateIdSchema.parse(aggregateId);
@@ -27,9 +35,12 @@ export const executeGetAggregateEventsQuery = async (
       ? undefined
       : eventTypeSchema.parse(eventType);
 
+  const validatedLimit = eventLimitSchema.parse(limit);
+
   return getEventsByAggregateId(
     validatedAggregateId,
-    validatedEventType
+    validatedEventType,
+    validatedLimit
   );
 };
 
