@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import mongoose from "mongoose";
 import eventRoutes from "./routes/event.routes.js";
 
 const app = express();
@@ -14,6 +15,19 @@ app.get("/health", (_req, res) => {
     success: true,
     service: "audit-trail-backend",
     message: "Backend is running",
+  });
+});
+
+app.get("/health/ready", (_req, res) => {
+  const databaseConnected = mongoose.connection.readyState === 1;
+
+  return res.status(databaseConnected ? 200 : 503).json({
+    success: databaseConnected,
+    service: "audit-trail-backend",
+    database: databaseConnected ? "connected" : "disconnected",
+    message: databaseConnected
+      ? "Backend is ready"
+      : "Database is not ready",
   });
 });
 
