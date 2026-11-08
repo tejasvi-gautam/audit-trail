@@ -112,3 +112,27 @@ test("API verifies aggregate event integrity", async () => {
   assert.equal(response.body.data.valid, true);
   assert.equal(response.body.data.checkedEvents, 2);
 });
+test("API limits returned aggregate events", async () => {
+  const paginationAggregateId = `pagination-api-${Date.now()}`;
+
+  for (let version = 1; version <= 3; version += 1) {
+    await request(app)
+      .post("/api/events")
+      .send({
+        aggregateId: paginationAggregateId,
+        eventType: `EVENT_${version}`,
+        payload: { version },
+        version,
+      });
+  }
+
+  const response = await request(app).get(
+    `/api/events/${paginationAggregateId}?limit=2`
+  );
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(
+    response.body.data.map((event) => event.version),
+    [1, 2]
+  );
+});
