@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import mongoose from "mongoose";
 import Event from "../models/event.model.js";
 import { env } from "../config/env.js";
+import { verifyAggregateIntegrity } from "../repositories/event.repository.js";
 
 const aggregateId = `immutability-test-${Date.now()}`;
 let createdEvent;
@@ -59,5 +60,24 @@ test("duplicate aggregate versions are rejected", async () => {
         version: 1,
       }),
     /duplicate|E11000/i
+  );
+});
+
+test("tampered event hash fails integrity verification", async () => {
+  const originalHash = createdEvent.eventHash;
+
+  await Event.collection.updateOne(
+    { _id: createdEvent._id },
+    { $set: { eventHash: "tampered-hash" } }
+  );
+
+  const result = await verifyAggregateIntegrity(aggregateId);
+
+  assert.equal(result.valid, false);
+  assert.equal(result.failedVersion, 1);
+
+  await Event.collection.updateOne(
+    { _id: createdEvent._id },
+    { $set: { eventHash: originalHash } }
   );
 });
