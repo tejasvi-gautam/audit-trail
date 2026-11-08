@@ -74,6 +74,7 @@ test("oversized request payload returns 413", async () => {
   assert.equal(response.body.success, false);
   assert.equal(response.body.message, "Request payload is too large");
 });
+
 test("readiness endpoint reports database status", async () => {
   const response = await request(app).get("/health/ready");
 
@@ -83,4 +84,24 @@ test("readiness endpoint reports database status", async () => {
     ["connected", "disconnected"].includes(response.body.database)
   );
   assert.equal(response.body.success, response.status === 200);
+});
+
+test("responses include a request ID", async () => {
+  const response = await request(app).get("/health");
+
+  assert.match(
+    response.headers["x-request-id"],
+    /^[0-9a-f-]{36}$/
+  );
+});
+
+test("incoming request ID is preserved", async () => {
+  const response = await request(app)
+    .get("/health")
+    .set("x-request-id", "demo-request-001");
+
+  assert.equal(
+    response.headers["x-request-id"],
+    "demo-request-001"
+  );
 });
